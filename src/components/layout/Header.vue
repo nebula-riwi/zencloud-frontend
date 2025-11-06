@@ -49,7 +49,7 @@
       @click="toggleMobileMenu"
       class="md:hidden flex items-center justify-center w-10 h-10 rounded-full bg-background/50 border border-border/50 transition-colors hover:bg-background/80 focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50"
       :aria-label="isMobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'"
-      aria-expanded="isMobileMenuOpen"
+      :aria-expanded="isMobileMenuOpen ? 'true' : 'false'"
       aria-controls="mobile-menu"
     >
       <div class="flex flex-col items-center justify-center w-5 h-5 space-y-1">
