@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: oklch(1.0 0 0);
+    --foreground: #121113;
+    --card: oklch(1.0 0 0);
+    --card-foreground: #121113;
+    --popover: oklch(1.0 0 0);
+    --popover-foreground: #121113;
+    --primary: oklch(0.6716 0.1368 48.513);
+    --primary-foreground: oklch(1.0 0 0);
+    --secondary: oklch(0.536 0.0398 196.028);
+    --secondary-foreground: oklch(1.0 0 0);
+    --muted: oklch(0.967 0.0029 264.5419);
+    --muted-foreground: oklch(0.551 0.0234 264.3637);
+    --accent: oklch(0.9491 0 0);
+    --accent-foreground: #121113;
+    --destructive: oklch(0.6368 0.2078 25.3313);
+    --destructive-foreground: oklch(0.9851 0 0);
+    --border: oklch(0.9276 0.0058 264.5313);
+    --input: oklch(0.9276 0.0058 264.5313);
+    --ring: oklch(0.6716 0.1368 48.513);
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: oklch(0.1797 0.0043 308.1928);
+    --foreground: oklch(0.8109 0 0);
+    --card: oklch(0.1822 0 0);
+    --card-foreground: oklch(0.8109 0 0);
+    --popover: oklch(0.1797 0.0043 308.1928);
+    --popover-foreground: oklch(0.8109 0 0);
+    --primary: oklch(0.7214 0.1337 49.9802);
+    --primary-foreground: oklch(0.1797 0.0043 308.1928);
+    --secondary: oklch(0.594 0.0443 196.0233);
+    --secondary-foreground: oklch(0.1797 0.0043 308.1928);
+    --muted: oklch(0.252 0 0);
+    --muted-foreground: oklch(0.6268 0 0);
+    --accent: oklch(0.3211 0 0);
+    --accent-foreground: oklch(0.8109 0 0);
+    --destructive: oklch(0.594 0.0443 196.0233);
+    --destructive-foreground: oklch(0.1797 0.0043 308.1928);
+    --border: oklch(0.252 0 0);
+    --input: oklch(0.252 0 0);
+    --ring: oklch(0.7214 0.1337 49.9802);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-black text-white;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    font-kerning: normal;
+    letter-spacing: -0.011em;
+    cursor: none !important;
+    font-weight: 400;
+    background: #000000;
+  }
+  * {
+    cursor: none !important;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    font-feature-settings: 'kern' 1;
+  }
+  p {
+    letter-spacing: -0.011em;
+    line-height: 1.6;
+  }
+  .text-sm, .text-xs {
+    letter-spacing: -0.005em;
+    line-height: 1.5;
+  }
+  button {
+    letter-spacing: -0.005em;
+    font-weight: 500;
+  }
+}
+
+/* Custom text selection styling */
+::selection {
+  background-color: #e78a53;
+  color: #121113;
+}
+
+::-moz-selection {
+  background-color: #e78a53;
+  color: #121113;
+}
+
+/* Hero title glow effect */
+#main-title {
+  text-shadow: 
+    0 0 20px rgba(255, 255, 255, 0.5),
+    0 0 40px rgba(255, 255, 255, 0.3),
+    0 0 60px rgba(255, 255, 255, 0.2);
+}
+
+/* Hide scrollbar but keep scrolling functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
