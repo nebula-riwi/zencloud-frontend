@@ -4,13 +4,14 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copiar archivos de dependencias
-COPY package*.json pnpm-lock.yaml ./
+COPY package*.json ./
+COPY pnpm-lock.yaml* ./
 
 # Instalar pnpm si es necesario
 RUN npm install -g pnpm
 
-# Instalar dependencias
-RUN pnpm install --frozen-lockfile
+# Instalar dependencias (sin frozen-lockfile para permitir actualizaciones)
+RUN pnpm install
 
 # Copiar el resto del código
 COPY . .

@@ -48,7 +48,7 @@ const pointerStyle = computed(() => ({
   top: `${y.value}px`,
   left: `${x.value}px`,
   transform: 'translate(-25%, -15%)',
-  pointerEvents: 'none',
+  pointerEvents: 'none' as const,
   willChange: 'transform',
   transformOrigin: 'top left',
 }))

@@ -113,7 +113,6 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
 import { Sparkles, Database, ArrowRight } from 'lucide-vue-next'
 

@@ -10,26 +10,17 @@
     <!-- Globe container -->
     <div class="absolute top-[68%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center">
       <div class="w-[450px] h-[450px] sm:w-[520px] sm:h-[520px] lg:w-[580px] lg:h-[580px]">
-        <Suspense>
-          <template #default>
-            <Globe 
-              :base-color="[1, 0.6, 0.4]" 
-              :marker-color="[1, 0.5, 0.3]" 
-              :glow-color="[0.95, 0.55, 0.35]"
-              :theta="0.5"
-              :dark="0"
-              :scale="1.15"
-              :diffuse="0.2"
-              :map-samples="30000"
-              :map-brightness="12"
-            />
-          </template>
-          <template #fallback>
-            <div class="bg-[#e78a53]/20 h-full w-full animate-pulse rounded-full flex items-center justify-center">
-              <div class="text-[#e78a53] text-sm">Cargando...</div>
-            </div>
-          </template>
-        </Suspense>
+        <Globe 
+          :base-color="[1, 0.6, 0.4]" 
+          :marker-color="[1, 0.5, 0.3]" 
+          :glow-color="[0.95, 0.55, 0.35]"
+          :theta="0.5"
+          :dark="0"
+          :scale="1.15"
+          :diffuse="0.2"
+          :map-samples="30000"
+          :map-brightness="12"
+        />
       </div>
     </div>
     
@@ -37,7 +28,6 @@
 </template>
 
 <script setup lang="ts">
-import { Suspense } from 'vue'
 import DatabaseScramble from '@/components/ui/DatabaseScramble.vue'
 import Globe from '@/components/ui/Globe.vue'
 
