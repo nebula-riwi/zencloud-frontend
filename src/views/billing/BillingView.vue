@@ -347,7 +347,7 @@ import CardContent from '@/components/ui/CardContent.vue'
 import CardFooter from '@/components/ui/CardFooter.vue'
 import Button from '@/components/ui/Button.vue'
 import Badge from '@/components/ui/Badge.vue'
-import { Crown, Sparkles, Zap, Receipt } from 'lucide-vue-next'
+import { Crown, Sparkles, Zap, Receipt, CreditCard } from 'lucide-vue-next'
 import type { Plan, PaymentHistory } from '@/types'
 import { storeToRefs } from 'pinia'
 

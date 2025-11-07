@@ -22,12 +22,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import DashboardSidebar from './DashboardSidebar.vue'
 import DashboardTopNav from './DashboardTopNav.vue'
 
-const menuState = ref<'full' | 'collapsed'>('full')
+// Initialize menu state from localStorage immediately (before mount)
+// This ensures the state is correct even before Vue mounts
+const getInitialMenuState = (): 'full' | 'collapsed' => {
+  if (typeof window === 'undefined') return 'full'
+  const saved = localStorage.getItem('sidebar_state')
+  if (saved === 'collapsed') {
+    return 'collapsed'
+  } else if (saved === 'full') {
+    return 'full'
+  } else if (saved === 'hidden') {
+    // Convert old 'hidden' state to 'collapsed'
+    localStorage.setItem('sidebar_state', 'collapsed')
+    return 'collapsed'
+  }
+  return 'full'
+}
+
+const menuState = ref<'full' | 'collapsed'>(getInitialMenuState())
 const isMobile = ref(false)
+
+// Watch for menuState changes and save to localStorage immediately
+watch(menuState, (newState) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('sidebar_state', newState)
+  }
+})
 
 onMounted(() => {
   const checkMobile = () => {
@@ -36,14 +60,14 @@ onMounted(() => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
   
-  // Load saved menu state
+  // Always sync with localStorage on mount to ensure consistency
+  // This prevents the sidebar from opening when navigating between views
   const saved = localStorage.getItem('sidebar_state')
-  if (saved && (saved === 'full' || saved === 'collapsed')) {
-    menuState.value = saved as 'full' | 'collapsed'
-  } else if (saved === 'hidden') {
-    // Convert old 'hidden' state to 'collapsed'
-    menuState.value = 'collapsed'
-    localStorage.setItem('sidebar_state', 'collapsed')
+  if (saved === 'collapsed' || saved === 'full') {
+    // Only update if different to avoid unnecessary reactivity triggers
+    if (menuState.value !== saved) {
+      menuState.value = saved as 'full' | 'collapsed'
+    }
   }
 })
 
