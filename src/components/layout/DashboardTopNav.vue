@@ -74,7 +74,6 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { Home, Settings, ChevronDown, LogOut } from 'lucide-vue-next'
-import Button from '@/components/ui/Button.vue'
 import { storeToRefs } from 'pinia'
 
 const router = useRouter()

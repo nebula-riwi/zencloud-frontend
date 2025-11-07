@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User, AuthResponse, LoginCredentials, RegisterData } from '@/types'
-import apiClient from '@/services/api'
+// import apiClient from '@/services/api' // Backend will be implemented later
 
 // Usar sessionStorage para tokens (más seguro que localStorage)
 // y mantener localStorage solo para "remember me" si se implementa

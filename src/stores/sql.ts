@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { SqlQuery, SqlResult, Database } from '@/types'
+import type { SqlResult, Database } from '@/types'
 // import apiClient from '@/services/api' // Backend will be implemented later
 
 interface QueryHistory {

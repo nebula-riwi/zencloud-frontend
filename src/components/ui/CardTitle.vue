@@ -1,10 +1,13 @@
 <template>
-  <h3 :class="cn('text-2xl font-semibold leading-none tracking-tight text-white', $attrs.class)">
+  <h3 :class="cn('text-2xl font-semibold leading-none tracking-tight text-white', attrs.class as string)">
     <slot />
   </h3>
 </template>
 
 <script setup lang="ts">
+import { useAttrs } from 'vue'
 import { cn } from '@/lib/utils'
+
+const attrs = useAttrs()
 </script>
 

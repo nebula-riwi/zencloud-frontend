@@ -76,13 +76,13 @@
           <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/5 via-transparent to-transparent opacity-50"></div>
           <CardHeader class="relative z-10 border-b border-white/10">
             <TabsList v-model="selectedEngine" class="grid w-full grid-cols-7">
-              <TabsTrigger value="all">Todas</TabsTrigger>
-              <TabsTrigger value="mysql">MySQL</TabsTrigger>
-              <TabsTrigger value="postgresql">PostgreSQL</TabsTrigger>
-              <TabsTrigger value="mongodb">MongoDB</TabsTrigger>
-              <TabsTrigger value="sqlserver">SQL Server</TabsTrigger>
-              <TabsTrigger value="redis">Redis</TabsTrigger>
-              <TabsTrigger value="cassandra">Cassandra</TabsTrigger>
+              <TabsTrigger :modelValue="selectedEngine" value="all" @update:modelValue="selectedEngine = $event as DatabaseEngine | 'all'">Todas</TabsTrigger>
+              <TabsTrigger :modelValue="selectedEngine" value="mysql" @update:modelValue="selectedEngine = $event as DatabaseEngine | 'all'">MySQL</TabsTrigger>
+              <TabsTrigger :modelValue="selectedEngine" value="postgresql" @update:modelValue="selectedEngine = $event as DatabaseEngine | 'all'">PostgreSQL</TabsTrigger>
+              <TabsTrigger :modelValue="selectedEngine" value="mongodb" @update:modelValue="selectedEngine = $event as DatabaseEngine | 'all'">MongoDB</TabsTrigger>
+              <TabsTrigger :modelValue="selectedEngine" value="sqlserver" @update:modelValue="selectedEngine = $event as DatabaseEngine | 'all'">SQL Server</TabsTrigger>
+              <TabsTrigger :modelValue="selectedEngine" value="redis" @update:modelValue="selectedEngine = $event as DatabaseEngine | 'all'">Redis</TabsTrigger>
+              <TabsTrigger :modelValue="selectedEngine" value="cassandra" @update:modelValue="selectedEngine = $event as DatabaseEngine | 'all'">Cassandra</TabsTrigger>
             </TabsList>
           </CardHeader>
           <CardContent class="relative z-10 pt-6">
@@ -160,7 +160,7 @@
                       Credenciales
                     </Button>
                     <Button
-                      variant="destructive"
+                      variant="danger"
                       size="sm"
                       @click="confirmDelete(db.id)"
                       class="flex-1"
@@ -201,7 +201,7 @@
       description="¿Estás seguro de que deseas eliminar esta base de datos? Esta acción no se puede deshacer."
       confirm-text="Eliminar"
       cancel-text="Cancelar"
-      confirm-variant="destructive"
+      confirm-variant="danger"
       @confirm="handleDelete"
     />
   </DashboardLayout>

@@ -230,7 +230,7 @@ import CardHeader from '@/components/ui/CardHeader.vue'
 import CardTitle from '@/components/ui/CardTitle.vue'
 import CardContent from '@/components/ui/CardContent.vue'
 import Button from '@/components/ui/Button.vue'
-import { Database, Terminal, ChevronDown, AlertCircle, RefreshCw, Table } from 'lucide-vue-next'
+import { Database, Terminal, ChevronDown, AlertCircle, RefreshCw } from 'lucide-vue-next'
 import type { Database as DatabaseType } from '@/types'
 import { storeToRefs } from 'pinia'
 

@@ -1,6 +1,5 @@
 <template>
-  <FollowerPointer>
-    <div class="min-h-screen w-full relative bg-black">
+  <div class="min-h-screen w-full relative bg-black">
       <!-- Pearl Mist Background with Top Glow -->
       <div
         class="absolute inset-0 z-0"
@@ -43,14 +42,11 @@
         @update:mode="(mode) => authMode = mode"
       />
     </div>
-  </FollowerPointer>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import FollowerPointer from '@/components/common/FollowerPointer.vue'
 import Header from '@/components/layout/Header.vue'
 import Hero from '@/components/home/Hero.vue'
 import FeaturesSection from '@/components/sections/FeaturesSection.vue'
@@ -65,7 +61,6 @@ import { useMeta, META_PRESETS } from '@/composables/useMeta'
 useMeta(META_PRESETS.home)
 
 const route = useRoute()
-const authStore = useAuthStore()
 
 const showAuthModal = ref(false)
 const authMode = ref<'login' | 'register'>('login')

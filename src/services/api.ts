@@ -1,13 +1,10 @@
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '@/stores/auth'
-import { useToastStore } from '@/stores/toast'
+// import { useToastStore } from '@/stores/toast' // Will be used when backend error handling is enabled
 import type { ApiError } from '@/types'
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://service.voyager.andrescortes.dev/api'
 
-// Configuración de retry
-const MAX_RETRIES = 3
-const RETRY_DELAY = 1000
 const TIMEOUT = 30000 // 30 segundos
 
 // Crear instancia de Axios

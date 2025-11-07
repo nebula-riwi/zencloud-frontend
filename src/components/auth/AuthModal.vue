@@ -464,7 +464,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+// import { useAuthStore } from '@/stores/auth' // Not needed - authService handles auth
 import { useToastStore } from '@/stores/toast'
 import { authService } from '@/services/auth.service'
 import { loginSchema, registerSchema, useFormValidation } from '@/lib/validations'
@@ -487,7 +487,7 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const route = useRoute()
-const authStore = useAuthStore()
+// const authStore = useAuthStore() // Not needed - authService handles auth
 const toastStore = useToastStore()
 
 const isLogin = ref(props.mode === 'login')
@@ -613,7 +613,8 @@ async function handleLogin() {
   
   try {
     const response = await authService.login(validation.data!)
-    authStore.setAuth(response.token, response.refreshToken, response.user)
+    // authStore.setAuth is already called inside authService.login
+    // authStore.setAuth(response.token, response.refreshToken, response.user)
     
     toastStore.success('¡Bienvenido!', `Hola ${response.user.name}`)
     
@@ -625,7 +626,7 @@ async function handleLogin() {
   } catch (error: any) {
     console.error('Login error:', error)
     
-    const errorMessage = error.response?.data?.message || 'Error al iniciar sesión. Verifica tus credenciales.'
+    const errorMessage = error.response?.data?.message || error.message || 'Error al iniciar sesión. Verifica tus credenciales.'
     toastStore.error('Error de autenticación', errorMessage)
   } finally {
     loading.value = false
@@ -644,7 +645,8 @@ async function handleRegister() {
   
   try {
     const response = await authService.register(validation.data!)
-    authStore.setAuth(response.token, response.refreshToken, response.user)
+    // authStore.setAuth is already called inside authService.register
+    // authStore.setAuth(response.token, response.refreshToken, response.user)
     
     toastStore.success('¡Cuenta creada!', `Bienvenido ${response.user.name}`)
     
@@ -658,6 +660,8 @@ async function handleRegister() {
     
     if (error.response?.data?.message) {
       errorMessage = error.response.data.message
+    } else if (error.message) {
+      errorMessage = error.message
     } else if (error.response?.status === 409) {
       errorMessage = 'El email ya está registrado.'
     }

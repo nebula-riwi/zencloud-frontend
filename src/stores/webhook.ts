@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Webhook, WebhookEventType, WebhookTestResult } from '@/types'
-import apiClient from '@/services/api'
+// import apiClient from '@/services/api' // Backend will be implemented later
 
 export const useWebhookStore = defineStore('webhook', () => {
   const webhooks = ref<Webhook[]>([])
@@ -67,7 +67,7 @@ export const useWebhookStore = defineStore('webhook', () => {
     webhooks.value = webhooks.value.filter((w) => w.id !== id)
   }
 
-  async function testWebhook(id: string): Promise<WebhookTestResult> {
+  async function testWebhook(_id: string): Promise<WebhookTestResult> {
     // Mock - Backend will be implemented later
     await new Promise(resolve => setTimeout(resolve, 300))
     return {

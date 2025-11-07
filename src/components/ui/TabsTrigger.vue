@@ -5,7 +5,7 @@
       modelValue === value 
         ? 'bg-gradient-to-r from-[#e78a53]/20 to-[#e78a53]/10 text-[#e78a53] border border-[#e78a53]/30 shadow-lg shadow-[#e78a53]/10' 
         : 'text-white/70 hover:text-white hover:bg-white/5',
-      $attrs.class
+      attrs.class as string
     )"
     @click="$emit('update:modelValue', value)"
   >
@@ -18,7 +18,10 @@
 </template>
 
 <script setup lang="ts">
+import { useAttrs } from 'vue'
 import { cn } from '@/lib/utils'
+
+const attrs = useAttrs()
 
 defineProps<{
   value: string

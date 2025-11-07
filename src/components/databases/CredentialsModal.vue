@@ -81,7 +81,6 @@ import DialogContent from '@/components/ui/DialogContent.vue'
 import Input from '@/components/ui/Input.vue'
 import Button from '@/components/ui/Button.vue'
 import Loading from '@/components/ui/Loading.vue'
-import AlertDialog from '@/components/ui/AlertDialog.vue'
 import { Copy, Eye, EyeOff } from 'lucide-vue-next'
 import type { DatabaseCredentials } from '@/types'
 
@@ -102,7 +101,6 @@ const credentials = ref<DatabaseCredentials | null>(null)
 const loading = ref(false)
 const rotating = ref(false)
 const showPassword = ref(false)
-const showRotateDialog = ref(false)
 const isFirstView = ref(false)
 
 watch(

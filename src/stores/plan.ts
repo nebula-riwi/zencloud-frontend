@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Plan, PlanQuota, MercadoPagoPreference } from '@/types'
-import apiClient from '@/services/api'
+// import apiClient from '@/services/api' // Backend will be implemented later
 
 export const usePlanStore = defineStore('plan', () => {
   const currentPlan = ref<Plan | null>(null)
@@ -27,7 +27,7 @@ export const usePlanStore = defineStore('plan', () => {
     return quotasByEngine.value
   }
 
-  async function upgradePlan(planId: string): Promise<MercadoPagoPreference> {
+  async function upgradePlan(_planId: string): Promise<MercadoPagoPreference> {
     // Mock - Backend will be implemented later
     await new Promise(resolve => setTimeout(resolve, 300))
     return {
@@ -37,7 +37,7 @@ export const usePlanStore = defineStore('plan', () => {
     }
   }
 
-  async function checkCheckoutStatus(preferenceId: string): Promise<{ status: string; plan?: Plan }> {
+  async function checkCheckoutStatus(_preferenceId: string): Promise<{ status: string; plan?: Plan }> {
     // Mock - Backend will be implemented later
     await new Promise(resolve => setTimeout(resolve, 300))
     return { status: 'approved' }

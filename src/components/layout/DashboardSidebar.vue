@@ -112,7 +112,6 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
 import { 
   LayoutDashboard, 
   Database, 
@@ -132,8 +131,6 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:menuState': [value: 'full' | 'collapsed']
 }>()
-
-const route = useRoute()
 
 function toggleMenu() {
   const currentState = props.menuState
