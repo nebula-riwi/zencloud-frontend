@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
 import type { ApiError } from '@/types'
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://service.voyager.andrescortes.dev/api'
+const API_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://service.voyager.andrescortes.dev/api'
 
 // Configuración de retry
 const MAX_RETRIES = 3
@@ -43,26 +43,9 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
     // Manejo de errores de red (timeout, no internet, etc.)
+    // DISABLED: Backend will be implemented later - Silently fail to avoid infinite error loops
     if (!error.response) {
-      const toastStore = useToastStore()
-      
-      if (error.code === 'ECONNABORTED') {
-        toastStore.error('Tiempo de espera agotado', 'La solicitud tardó demasiado. Por favor, intenta nuevamente.')
-      } else if (error.message === 'Network Error') {
-        toastStore.error('Error de conexión', 'Verifica tu conexión a internet.')
-      }
-
-      // Retry logic para errores de red
-      const currentRetries = retryCount.get(originalRequest) || 0
-      if (currentRetries < MAX_RETRIES) {
-        retryCount.set(originalRequest, currentRetries + 1)
-        
-        // Esperar antes de reintentar
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (currentRetries + 1)))
-        
-        return apiClient(originalRequest)
-      }
-      
+      // Silently reject - Backend not available yet
       retryCount.delete(originalRequest)
       return Promise.reject(error)
     }
@@ -71,55 +54,16 @@ apiClient.interceptors.response.use(
     retryCount.delete(originalRequest)
 
     // Manejo de 401 - Token expirado
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
-
-      const authStore = useAuthStore()
-      if (authStore.refreshToken) {
-        try {
-          const response = await axios.post(`${API_URL}/auth/refresh`, {
-            refreshToken: authStore.refreshToken,
-          })
-
-          const { token, refreshToken } = response.data
-          authStore.setAuth(token, refreshToken, authStore.user!)
-
-          originalRequest.headers.Authorization = `Bearer ${token}`
-          return apiClient(originalRequest)
-        } catch (refreshError) {
-          authStore.clearAuth()
-          const toastStore = useToastStore()
-          toastStore.error('Sesión expirada', 'Por favor, inicia sesión nuevamente.')
-          
-          // Redirigir al login después de un breve delay
-          setTimeout(() => {
-            window.location.href = '/auth/login'
-          }, 1500)
-          
-          return Promise.reject(refreshError)
-        }
-      } else {
-        // No hay refresh token, limpiar auth y redirigir
-        const authStore = useAuthStore()
-        authStore.clearAuth()
-        window.location.href = '/auth/login'
-      }
-    }
+    // DISABLED: Backend will be implemented later
+    // if (error.response?.status === 401 && !originalRequest._retry) {
+    //   originalRequest._retry = true
+    //   // ... refresh logic will be enabled when backend is ready
+    // }
 
     // Manejo de otros errores HTTP
-    const toastStore = useToastStore()
-    const status = error.response?.status
+    // DISABLED: Backend will be implemented later - Silently fail to avoid infinite error loops
+    // Error handling will be enabled when backend is ready
     
-    if (status === 403) {
-      toastStore.error('Acceso denegado', 'No tienes permisos para realizar esta acción.')
-    } else if (status === 404) {
-      toastStore.error('No encontrado', 'El recurso solicitado no existe.')
-    } else if (status === 429) {
-      toastStore.error('Demasiadas solicitudes', 'Por favor, espera un momento antes de intentar nuevamente.')
-    } else if (status && status >= 500) {
-      toastStore.error('Error del servidor', 'Ocurrió un error en el servidor. Por favor, intenta más tarde.')
-    }
-
     return Promise.reject(error)
   }
 )

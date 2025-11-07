@@ -9,43 +9,39 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/HomePage.vue'),
   },
   {
-    path: '/auth/login',
-    name: 'Login',
-    component: () => import('@/pages/auth/LoginPage.vue'),
-  },
-  {
-    path: '/auth/register',
-    name: 'Register',
-    component: () => import('@/pages/auth/RegisterPage.vue'),
-  },
-  {
     path: '/dashboard',
     name: 'Dashboard',
-    component: () => import('@/pages/DashboardPage.vue'),
+    component: () => import('@/views/DashboardView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/databases',
     name: 'Databases',
-    component: () => import('@/pages/DatabasesPage.vue'),
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/plans',
-    name: 'Plans',
-    component: () => import('@/pages/PlansPage.vue'),
+    component: () => import('@/views/databases/DatabasesListView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/billing',
     name: 'Billing',
-    component: () => import('@/pages/BillingPage.vue'),
+    component: () => import('@/views/billing/BillingView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/webhooks',
     name: 'Webhooks',
-    component: () => import('@/pages/WebhooksPage.vue'),
+    component: () => import('@/views/webhooks/WebhooksView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('@/views/settings/SettingsView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/sql-editor',
+    name: 'SqlEditor',
+    component: () => import('@/views/sql/SqlEditorView.vue'),
     meta: { requiresAuth: true },
   },
 ]
@@ -78,14 +74,11 @@ router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore()
   
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    // Guardar la ruta de destino para redirección después del login
+    // Guardar la ruta de destino y redirigir al home (donde está el modal de login)
     next({ 
-      name: 'Login', 
-      query: { redirect: to.fullPath }
+      name: 'Home', 
+      query: { redirect: to.fullPath, action: 'login' }
     })
-  } else if (to.name === 'Login' && authStore.isAuthenticated) {
-    // Si ya está autenticado y va a login, redirigir a dashboard
-    next({ name: 'Dashboard' })
   } else {
     next()
   }

@@ -2,7 +2,7 @@
   <Transition name="slide-up">
     <div
       v-if="isAtBottom"
-      class="fixed z-50 bottom-0 left-0 w-full h-80 flex justify-center items-center"
+      class="fixed z-40 bottom-0 left-0 w-full h-80 flex justify-center items-center"
       style="background-color: #e78a53;"
     >
       <div
@@ -37,9 +37,17 @@
             </ul>
           </div>
         </Transition>
-        <Transition name="slide-in-left" appear style="transition-delay: 300ms">
+        <Transition 
+          name="slide-in-left" 
+          appear 
+          style="transition-delay: 300ms"
+          @after-enter="onTextAnimationComplete"
+        >
           <h2
-            class="absolute bottom-0 left-0 translate-y-1/3 sm:text-[192px] text-[80px] font-bold select-none tracking-tight"
+            :class="[
+              'absolute bottom-0 left-0 sm:text-[192px] text-[80px] font-bold select-none tracking-tight transition-transform duration-300',
+              animationComplete ? 'translate-y-1/6' : 'translate-y-1/3'
+            ]"
             style="color: #121113;"
           >
             ZenCloud
@@ -54,9 +62,14 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 const isAtBottom = ref(false)
+const animationComplete = ref(false)
 
 const links1 = ['Inicio', 'Documentación', 'Características']
-const links2 = ['GitHub', 'Twitter', 'Discord']
+const links2 = ['GitHub', 'X', 'Discord']
+
+const onTextAnimationComplete = () => {
+  animationComplete.value = true
+}
 
 const handleScroll = () => {
   const scrollTop = window.scrollY

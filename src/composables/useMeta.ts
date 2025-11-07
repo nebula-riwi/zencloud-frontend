@@ -8,7 +8,7 @@ interface MetaConfig {
   ogDescription?: string
   ogImage?: string
   ogUrl?: string
-  twitterCard?: 'summary' | 'summary_large_image' | 'app' | 'player'
+  xCard?: 'summary' | 'summary_large_image' | 'app' | 'player'
   keywords?: string
 }
 
@@ -19,7 +19,7 @@ const DEFAULT_META: Required<MetaConfig> = {
   ogDescription: 'Gestión automatizada de bases de datos en la nube con soporte para MySQL, PostgreSQL, MongoDB, SQL Server, Redis y Cassandra.',
   ogImage: '/og-image.png',
   ogUrl: 'https://zencloud.app',
-  twitterCard: 'summary_large_image',
+  xCard: 'summary_large_image',
   keywords: 'base de datos, cloud, mysql, postgresql, mongodb, redis, cassandra, database, automatización',
 }
 
@@ -44,8 +44,8 @@ export function useMeta(config: MetaConfig = {}) {
     updateMetaTag('og:type', 'website', 'property')
     updateMetaTag('og:site_name', 'ZenCloud', 'property')
 
-    // Twitter Card tags
-    updateMetaTag('twitter:card', meta.twitterCard)
+    // X Card tags
+    updateMetaTag('twitter:card', meta.xCard)
     updateMetaTag('twitter:title', meta.ogTitle)
     updateMetaTag('twitter:description', meta.ogDescription)
     updateMetaTag('twitter:image', meta.ogImage)

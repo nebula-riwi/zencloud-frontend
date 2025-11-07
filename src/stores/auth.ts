@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { User } from '@/types'
+import type { User, AuthResponse, LoginCredentials, RegisterData } from '@/types'
+import apiClient from '@/services/api'
 
 // Usar sessionStorage para tokens (más seguro que localStorage)
 // y mantener localStorage solo para "remember me" si se implementa
@@ -65,6 +66,71 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function login(credentials: LoginCredentials): Promise<AuthResponse> {
+    // Mock - Backend will be implemented later
+    await new Promise(resolve => setTimeout(resolve, 500))
+    const mockUser: User = {
+      id: 'mock-user-id',
+      email: credentials.email,
+      name: credentials.email.split('@')[0],
+    }
+    const mockResponse: AuthResponse = {
+      token: 'mock-access-token',
+      refreshToken: 'mock-refresh-token',
+      user: mockUser,
+    }
+    setAuth(mockResponse.token, mockResponse.refreshToken, mockResponse.user)
+    return mockResponse
+  }
+
+  async function register(data: RegisterData): Promise<AuthResponse> {
+    // Mock - Backend will be implemented later
+    await new Promise(resolve => setTimeout(resolve, 500))
+    const mockUser: User = {
+      id: 'mock-user-id',
+      email: data.email,
+      name: data.name,
+    }
+    const mockResponse: AuthResponse = {
+      token: 'mock-access-token',
+      refreshToken: 'mock-refresh-token',
+      user: mockUser,
+    }
+    setAuth(mockResponse.token, mockResponse.refreshToken, mockResponse.user)
+    return mockResponse
+  }
+
+  async function refresh(): Promise<AuthResponse> {
+    // Mock - Backend will be implemented later
+    if (!refreshToken.value) {
+      throw new Error('No refresh token available')
+    }
+    await new Promise(resolve => setTimeout(resolve, 300))
+    const mockResponse: AuthResponse = {
+      token: 'mock-new-access-token',
+      refreshToken: refreshToken.value,
+      user: user.value!,
+    }
+    setAuth(mockResponse.token, mockResponse.refreshToken, mockResponse.user)
+    return mockResponse
+  }
+
+  async function fetchMe(): Promise<User> {
+    // Mock - Backend will be implemented later
+    await new Promise(resolve => setTimeout(resolve, 300))
+    if (user.value) {
+      return user.value
+    }
+    const mockUser: User = {
+      id: 'mock-user-id',
+      email: 'user@example.com',
+      name: 'Usuario Mock',
+    }
+    user.value = mockUser
+    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(mockUser))
+    return mockUser
+  }
+
   return {
     token,
     refreshToken,
@@ -74,6 +140,10 @@ export const useAuthStore = defineStore('auth', () => {
     clearAuth,
     initializeAuth,
     updateUser,
+    login,
+    register,
+    refresh,
+    fetchMe,
   }
 })
 

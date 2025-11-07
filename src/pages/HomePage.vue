@@ -35,12 +35,21 @@
 
       <!-- Sticky Footer -->
       <StickyFooter />
+      
+      <!-- Auth Modal -->
+      <AuthModal 
+        v-model="showAuthModal" 
+        :mode="authMode"
+        @update:mode="(mode) => authMode = mode"
+      />
     </div>
   </FollowerPointer>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import FollowerPointer from '@/components/common/FollowerPointer.vue'
 import Header from '@/components/layout/Header.vue'
 import Hero from '@/components/home/Hero.vue'
@@ -49,16 +58,45 @@ import PricingSection from '@/components/sections/PricingSection.vue'
 import TestimonialsSection from '@/components/sections/TestimonialsSection.vue'
 import FAQSection from '@/components/sections/FAQSection.vue'
 import StickyFooter from '@/components/sections/StickyFooter.vue'
+import AuthModal from '@/components/auth/AuthModal.vue'
 import { useMeta, META_PRESETS } from '@/composables/useMeta'
 
 // Configurar meta tags para SEO
 useMeta(META_PRESETS.home)
 
+const route = useRoute()
+const authStore = useAuthStore()
+
+const showAuthModal = ref(false)
+const authMode = ref<'login' | 'register'>('login')
+
+// Listen for open auth modal event from Header
 onMounted(() => {
   // Forzar tema oscuro
   const root = document.documentElement
   root.classList.remove('light', 'system')
   root.classList.add('dark')
+  
+  // Check if we should open the modal from query params
+  const action = route.query.action as string
+  if (action === 'login' || action === 'register') {
+    authMode.value = action
+    showAuthModal.value = true
+  }
+  
+  // Listen for custom event to open modal
+  window.addEventListener('open-auth-modal', ((e: CustomEvent) => {
+    authMode.value = e.detail?.mode || 'login'
+    showAuthModal.value = true
+  }) as EventListener)
+})
+
+// Watch for route changes to open modal
+watch(() => route.query.action, (action) => {
+  if (action === 'login' || action === 'register') {
+    authMode.value = action
+    showAuthModal.value = true
+  }
 })
 </script>
 
