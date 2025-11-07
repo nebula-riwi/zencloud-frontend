@@ -128,7 +128,7 @@
                 :key="engine.value"
                 class="group relative flex flex-col items-center justify-center p-6 rounded-xl border border-white/10 bg-black/30 backdrop-blur-sm hover:bg-black/40 hover:border-[#e78a53]/40 transition-colors duration-300 overflow-hidden"
                 :style="{ animationDelay: `${500 + index * 100}ms` }"
-                @click="goToDatabases(engine.value)"
+                @click="goToDatabases(engine.value as DatabaseEngine)"
               >
                 <!-- Hover gradient effect -->
                 <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/0 to-[#e78a53]/0 group-hover:from-[#e78a53]/10 group-hover:to-transparent transition-all duration-300"></div>
@@ -157,7 +157,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { usePlanStore } from '@/stores/plan'

@@ -1,14 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Database, DatabaseEngine, DatabaseCredentials } from '@/types'
-import apiClient from '@/services/api'
+// import apiClient from '@/services/api' // Backend will be implemented later
 
 export const useDatabaseStore = defineStore('database', () => {
   const databases = ref<Database[]>([])
   const loading = ref(false)
   const selectedEngine = ref<DatabaseEngine | 'all'>('all')
 
-  async function fetchDatabases(engine?: DatabaseEngine): Promise<Database[]> {
+  async function fetchDatabases(_engine?: DatabaseEngine): Promise<Database[]> {
     loading.value = true
     try {
       // Mock data - Backend will be implemented later
@@ -38,7 +38,7 @@ export const useDatabaseStore = defineStore('database', () => {
     databases.value = databases.value.filter((db) => db.id !== id)
   }
 
-  async function getCredentials(id: string): Promise<DatabaseCredentials> {
+  async function getCredentials(_id: string): Promise<DatabaseCredentials> {
     // Mock - Backend will be implemented later
     await new Promise(resolve => setTimeout(resolve, 300))
     return {
@@ -51,7 +51,7 @@ export const useDatabaseStore = defineStore('database', () => {
     }
   }
 
-  async function rotateCredentials(id: string): Promise<DatabaseCredentials> {
+  async function rotateCredentials(_id: string): Promise<DatabaseCredentials> {
     // Mock - Backend will be implemented later
     await new Promise(resolve => setTimeout(resolve, 300))
     return {

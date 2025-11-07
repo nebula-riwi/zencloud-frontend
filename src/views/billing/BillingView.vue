@@ -135,7 +135,7 @@
             <CardFooter class="relative z-10">
               <Button 
                 class="w-full font-semibold" 
-                :variant="plans[0].id === currentPlan?.id ? 'outline' : 'default'"
+                :variant="plans[0].id === currentPlan?.id ? 'outline' : 'primary'"
                 :class="plans[0].id === currentPlan?.id 
                   ? 'border-white/20 bg-black/40 text-white/70 hover:bg-black/50 hover:border-white/30' 
                   : 'bg-gradient-to-r from-[#e78a53] to-[#f59a63] hover:from-[#f59a63] hover:to-[#e78a53] text-white shadow-lg shadow-[#e78a53]/30 hover:shadow-[#e78a53]/50'"
@@ -194,7 +194,7 @@
             <CardFooter class="relative z-10">
               <Button 
                 class="w-full font-semibold" 
-                :variant="plans[1].id === currentPlan?.id ? 'outline' : 'default'"
+                :variant="plans[1].id === currentPlan?.id ? 'outline' : 'primary'"
                 :class="plans[1].id === currentPlan?.id 
                   ? 'border-white/20 bg-black/40 text-white/70 hover:bg-black/50 hover:border-white/30' 
                   : 'bg-gradient-to-r from-[#e78a53] to-[#f59a63] hover:from-[#f59a63] hover:to-[#e78a53] text-white shadow-lg shadow-[#e78a53]/30 hover:shadow-[#e78a53]/50'"
@@ -253,7 +253,7 @@
             <CardFooter class="relative z-10">
               <Button 
                 class="w-full font-semibold" 
-                :variant="plans[2].id === currentPlan?.id ? 'outline' : 'default'"
+                :variant="plans[2].id === currentPlan?.id ? 'outline' : 'primary'"
                 :class="plans[2].id === currentPlan?.id 
                   ? 'border-white/20 bg-black/40 text-white/70 hover:bg-black/50 hover:border-white/30' 
                   : 'bg-gradient-to-r from-[#e78a53] to-[#f59a63] hover:from-[#f59a63] hover:to-[#e78a53] text-white shadow-lg shadow-[#e78a53]/30 hover:shadow-[#e78a53]/50'"
@@ -335,7 +335,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { usePlanStore } from '@/stores/plan'
 import { useToastStore } from '@/stores/toast'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'

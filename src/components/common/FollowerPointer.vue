@@ -8,7 +8,7 @@
     <div
       v-if="mounted"
       ref="pointerRef"
-      class="fixed z-[99999] pointer-events-none transition-none"
+      class="fixed z-[999999] pointer-events-none transition-none"
       :style="pointerStyle"
     >
       <svg

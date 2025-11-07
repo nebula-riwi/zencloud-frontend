@@ -116,8 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useUserPrefsStore } from '@/stores/userPrefs'
 import { useToastStore } from '@/stores/toast'
@@ -129,11 +128,9 @@ import CardDescription from '@/components/ui/CardDescription.vue'
 import CardContent from '@/components/ui/CardContent.vue'
 import Input from '@/components/ui/Input.vue'
 import Switch from '@/components/ui/Switch.vue'
-import Button from '@/components/ui/Button.vue'
 import { User, Mail, Bell, Settings as SettingsIcon } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 
-const router = useRouter()
 const authStore = useAuthStore()
 const userPrefsStore = useUserPrefsStore()
 const toastStore = useToastStore()

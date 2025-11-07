@@ -67,7 +67,7 @@ const hasError = ref(false)
 const error = ref<Error | null>(null)
 
 // Capturar errores de componentes hijos
-onErrorCaptured((err: Error, instance, info) => {
+onErrorCaptured((err: Error, _instance, info) => {
   console.error('Error capturado por ErrorBoundary:', err, info)
   error.value = err
   hasError.value = true

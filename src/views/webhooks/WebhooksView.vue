@@ -106,7 +106,7 @@
                         {{ webhook.active ? 'Desactivar' : 'Activar' }}
                       </Button>
                       <Button 
-                        variant="destructive" 
+                        variant="danger" 
                         size="sm" 
                         @click="confirmDelete(webhook.id)"
                         class="bg-red-500/20 hover:bg-red-500/30 border-red-500/30"
@@ -124,7 +124,7 @@
     </div>
 
     <!-- Create/Edit Modal -->
-    <Dialog :model-value="showCreateModal || editingWebhook" @update:model-value="closeModal">
+    <Dialog :model-value="showCreateModal || editingWebhook !== null" @update:model-value="closeModal">
       <DialogHeader>
         <DialogTitle class="text-white" style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);">
           {{ editingWebhook ? 'Editar' : 'Crear' }} Webhook
