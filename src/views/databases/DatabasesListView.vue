@@ -184,6 +184,7 @@
     <!-- Create Database Modal -->
     <CreateDatabaseModal
       v-model="showCreateModal"
+      :preselected-engine="selectedEngine !== 'all' ? selectedEngine : undefined"
       @created="handleDatabaseCreated"
     />
 

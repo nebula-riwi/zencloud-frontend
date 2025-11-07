@@ -137,19 +137,14 @@
                     >
                       Limpiar
                     </Button>
-                    <button
-                      @click="executeQuery" 
+                    <Button
+                      @click="executeQuery"
                       :disabled="!selectedDb || !queryText.trim() || isRunning"
-                      class="inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-[#e78a53] to-[#f59a63] hover:from-[#f59a63] hover:to-[#e78a53] shadow-lg shadow-[#e78a53]/50 hover:shadow-[#e78a53]/70 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#e78a53] focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-[#e78a53] disabled:hover:to-[#f59a63]"
+                      :loading="isRunning"
+                      class="bg-gradient-to-r from-[#e78a53] to-[#f59a63] hover:from-[#f59a63] hover:to-[#e78a53] shadow-lg shadow-[#e78a53]/30"
                     >
-                      <span v-if="isRunning" class="mr-2">
-                        <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                      </span>
                       Ejecutar
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </CardHeader>

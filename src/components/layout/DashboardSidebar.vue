@@ -56,7 +56,8 @@
           <!-- Active indicator -->
           <div
             v-if="$route.path.startsWith(item.path)"
-            class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#e78a53] to-[#f59a63] rounded-r-full shadow-lg shadow-[#e78a53]/50 transition-opacity duration-300"
+            class="absolute left-0 top-1 bottom-1 w-1 bg-gradient-to-b from-[#e78a53] to-[#f59a63] rounded-r-full shadow-lg shadow-[#e78a53]/50 transition-opacity duration-300"
+            style="width: 5px; margin-top: 4px; margin-bottom: 4px;"
           />
           <component
             :is="item.icon"
