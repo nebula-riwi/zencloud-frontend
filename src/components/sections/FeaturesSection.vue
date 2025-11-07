@@ -1,7 +1,8 @@
 <template>
   <section id="features" class="text-foreground relative overflow-hidden py-12 sm:py-24 md:py-32 px-4 sm:px-6 lg:px-8">
     <div class="bg-primary absolute -top-10 left-1/2 h-16 w-44 -translate-x-1/2 rounded-full opacity-40 blur-3xl select-none"></div>
-    <div class="absolute top-0 left-1/2 h-px w-3/5 -translate-x-1/2 bg-gradient-to-r from-transparent via-[#e78a53]/30 to-transparent transition-all ease-in-out"></div>
+    <!-- Separator line with orange glow above and below -->
+    <div class="absolute top-0 left-1/2 h-px w-3/5 -translate-x-1/2 bg-[#e78a53]/40 transition-all ease-in-out" style="box-shadow: 0 0 8px rgba(231, 138, 83, 0.4), 0 -4px 12px rgba(231, 138, 83, 0.2), 0 4px 12px rgba(231, 138, 83, 0.2);"></div>
     
     <div ref="sectionRef" class="container mx-auto flex flex-col items-center gap-6 sm:gap-12 w-full max-w-7xl">
       <h2 class="mb-8 text-center text-4xl font-semibold tracking-tight text-white md:text-[54px] md:leading-[60px]" style="text-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 255, 255, 0.3), 0 0 60px rgba(255, 255, 255, 0.2);">

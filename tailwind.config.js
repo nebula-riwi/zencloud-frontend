@@ -8,30 +8,48 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#e78a53',
-        'primary-foreground': '#000000',
-        secondary: 'oklch(0.536 0.0398 196.028)',
-        'secondary-foreground': '#ffffff',
-        background: 'oklch(0.1797 0.0043 308.1928)',
-        foreground: 'oklch(0.8109 0 0)',
-        card: 'oklch(0.1822 0 0)',
-        'card-foreground': 'oklch(0.8109 0 0)',
-        muted: 'oklch(0.252 0 0)',
-        'muted-foreground': 'oklch(0.6268 0 0)',
-        accent: 'oklch(0.3211 0 0)',
-        'accent-foreground': 'oklch(0.8109 0 0)',
-        border: 'oklch(0.252 0 0)',
-        input: 'oklch(0.252 0 0)',
-        ring: '#e78a53',
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
+        },
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
+        },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'sans-serif'],
         mono: ['JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', 'monospace'],
       },
       borderRadius: {
-        lg: '0.75rem',
-        md: 'calc(0.75rem - 2px)',
-        sm: 'calc(0.75rem - 4px)',
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
       animation: {
         'marquee': 'marquee var(--duration, 40s) linear infinite',

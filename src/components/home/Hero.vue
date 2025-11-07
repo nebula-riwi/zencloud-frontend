@@ -60,7 +60,11 @@
 
             <!-- Get started button -->
             <div class="flex items-center justify-center">
-              <router-link to="/auth/register">
+              <button
+                type="button"
+                @click="openRegisterModal"
+                class="border-0 bg-transparent p-0 cursor-pointer"
+              >
                 <div class="group cursor-pointer border border-white/10 bg-black/40 gap-2 h-[60px] flex items-center p-[10px] rounded-full hover:bg-black/60 transition-all">
                   <div class="border border-white/10 bg-[#e78a53] h-[40px] rounded-full flex items-center justify-center text-white">
                     <p class="font-semibold tracking-[-0.01em] mr-3 ml-3 flex items-center gap-2 justify-center text-base">
@@ -72,7 +76,7 @@
                     <ArrowRight class="w-[14px] h-[14px] group-hover:rotate-180 ease-in-out transition-all" />
                   </div>
                 </div>
-              </router-link>
+              </button>
             </div>
           </div>
         </Transition>
@@ -117,6 +121,10 @@ import Badge from '@/components/ui/Badge.vue'
 import { Sparkles, Database, ArrowRight } from 'lucide-vue-next'
 
 import { ENGINE_FALLBACKS } from '@/composables/useImageFallback'
+
+function openRegisterModal() {
+  window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'register' } }))
+}
 
 const engines = [
   {

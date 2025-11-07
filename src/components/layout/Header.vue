@@ -34,12 +34,21 @@
     </nav>
 
     <div class="flex items-center gap-2">
-      <router-link
-        :to="{ name: 'Login' }"
+      <button
+        v-if="!isAuthenticated"
+        @click="openAuthModal"
         class="px-4 py-2 rounded-md font-semibold relative cursor-pointer hover:bg-[#f59a63] transition duration-200 inline-block text-center bg-[#e78a53] text-white text-sm tracking-[-0.01em] focus:outline-none focus:ring-2 focus:ring-[#e78a53] focus:ring-offset-2 focus:ring-offset-background"
         aria-label="Iniciar sesión o crear cuenta"
       >
         Cuenta
+      </button>
+      <router-link
+        v-else
+        :to="{ name: 'Dashboard' }"
+        class="px-4 py-2 rounded-md font-semibold relative cursor-pointer hover:bg-[#f59a63] transition duration-200 inline-block text-center bg-[#e78a53] text-white text-sm tracking-[-0.01em] focus:outline-none focus:ring-2 focus:ring-[#e78a53] focus:ring-offset-2 focus:ring-offset-background"
+        aria-label="Ir al dashboard"
+      >
+        Dashboard
       </router-link>
     </div>
 
@@ -101,11 +110,19 @@
           >
             {{ item.label }}
           </button>
-          <router-link
-            :to="{ name: 'Login' }"
+          <button
+            v-if="!isAuthenticated"
+            @click="openAuthModal"
             class="col-span-2 px-4 py-4 text-base font-bold text-center bg-[#e78a53] hover:bg-[#f59a63] text-white rounded-xl shadow-lg hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#e78a53] focus:ring-offset-2 focus:ring-offset-background mt-2"
           >
             Cuenta
+          </button>
+          <router-link
+            v-else
+            :to="{ name: 'Dashboard' }"
+            class="col-span-2 px-4 py-4 text-base font-bold text-center bg-[#e78a53] hover:bg-[#f59a63] text-white rounded-xl shadow-lg hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#e78a53] focus:ring-offset-2 focus:ring-offset-background mt-2"
+          >
+            Dashboard
           </router-link>
         </nav>
       </div>
@@ -114,9 +131,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { storeToRefs } from 'pinia'
+
+const authStore = useAuthStore()
+const { isAuthenticated } = storeToRefs(authStore)
+
 const isScrolled = ref(false)
 const isMobileMenuOpen = ref(false)
+
+function openAuthModal() {
+  // Dispatch custom event to open auth modal
+  window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'login' } }))
+  isMobileMenuOpen.value = false
+}
 
 const navItems = [
   { id: 'features', label: 'Características' },
