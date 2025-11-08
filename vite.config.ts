@@ -18,6 +18,17 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    minify: 'esbuild',
+    target: 'es2015',
+    // Continuar el build incluso si hay errores de tipo
+    // Los errores críticos seguirán fallando, pero warnings no
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Ignorar warnings específicos que no impiden el build
+        if (warning.code === 'UNUSED_EXTERNAL_IMPORT') return
+        warn(warning)
+      },
+    },
   },
 })
 
