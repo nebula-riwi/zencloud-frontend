@@ -32,7 +32,6 @@
           </div>
           <Button
             @click="showCreateModal = true"
-            :disabled="!canCreate"
             class="bg-gradient-to-r from-[#e78a53] to-[#f59a63] hover:from-[#f59a63] hover:to-[#e78a53] shadow-lg shadow-[#e78a53]/30 hover:shadow-[#e78a53]/50 transition-all duration-300"
           >
             <Plus class="h-4 w-4 mr-2" />

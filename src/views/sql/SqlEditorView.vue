@@ -42,76 +42,98 @@
                 <CardTitle class="text-xl text-white" style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);">Bases de Datos</CardTitle>
               </div>
             </CardHeader>
-            <CardContent class="relative z-10 pt-6 overflow-y-auto max-h-[calc(100vh-20rem)]">
-              <div class="space-y-3">
-                <div v-for="engine in groupedDatabases" :key="engine" class="space-y-2">
-                  <button
-                    class="w-full text-left px-3 py-2 text-sm font-semibold text-white/90 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200 flex items-center justify-between group"
-                    @click="toggleEngine(engine)"
-                  >
-                    <span>{{ engine }}</span>
-                    <ChevronDown 
-                      class="h-4 w-4 text-white/50 transition-transform duration-200"
-                      :class="{ 'rotate-180': expandedEngines.includes(engine) }"
-                    />
-                  </button>
-                  <Transition name="expand">
-                    <div v-if="expandedEngines.includes(engine)" class="ml-4 space-y-1 border-l border-white/10 pl-3">
-                      <button
-                        v-for="db in getDatabasesByEngine(engine)"
-                        :key="db.id"
-                        class="w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-white/5 transition-colors duration-200 group"
-                        :class="{ 
-                          'bg-gradient-to-r from-[#e78a53]/20 to-[#e78a53]/10 text-[#e78a53] border border-[#e78a53]/30': selectedDb?.id === db.id,
-                          'text-white/70 hover:text-white': selectedDb?.id !== db.id
-                        }"
-                        @click="selectDatabase(db)"
-                      >
-                        <div class="flex items-center gap-2">
-                          <Database class="h-3 w-3" />
-                          <span class="font-medium">{{ db.name }}</span>
-                        </div>
-                      </button>
-                    </div>
-                  </Transition>
+            <CardContent class="relative z-10 pt-6 overflow-y-auto" style="max-height: calc(100vh - 20rem);">
+              <div class="space-y-4">
+                <!-- Databases List -->
+                <div class="space-y-3">
+                  <div v-for="engine in groupedDatabases" :key="engine" class="space-y-2">
+                    <button
+                      class="w-full text-left px-3 py-2 text-sm font-semibold text-white/90 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200 flex items-center justify-between group"
+                      @click="toggleEngine(engine)"
+                    >
+                      <span>{{ engine }}</span>
+                      <ChevronDown 
+                        class="h-4 w-4 text-white/50 transition-transform duration-200"
+                        :class="{ 'rotate-180': expandedEngines.includes(engine) }"
+                      />
+                    </button>
+                    <Transition name="expand">
+                      <div v-if="expandedEngines.includes(engine)" class="ml-4 space-y-1 border-l border-white/10 pl-3">
+                        <button
+                          v-for="db in getDatabasesByEngine(engine)"
+                          :key="db.id"
+                          class="w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-white/5 transition-colors duration-200 group"
+                          :class="{ 
+                            'bg-gradient-to-r from-[#e78a53]/20 to-[#e78a53]/10 text-[#e78a53] border border-[#e78a53]/30': selectedDb?.id === db.id,
+                            'text-white/70 hover:text-white': selectedDb?.id !== db.id
+                          }"
+                          @click="selectDatabase(db)"
+                        >
+                          <div class="flex items-center gap-2">
+                            <Database class="h-3 w-3" />
+                            <span class="font-medium">{{ db.name }}</span>
+                          </div>
+                        </button>
+                      </div>
+                    </Transition>
+                  </div>
                 </div>
                 
-                <!-- Tables Section -->
+                <!-- Tables Section - Always visible when database is selected -->
                 <div v-if="selectedDb" class="pt-4 border-t border-white/10 mt-4">
                   <div class="flex items-center justify-between mb-3 px-3">
-                    <h3 class="text-sm font-semibold text-white/90">Tablas</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <div class="flex items-center gap-2">
+                      <div class="w-1 h-4 bg-gradient-to-b from-[#e78a53] to-transparent rounded-full"></div>
+                      <h3 class="text-sm font-semibold text-white/90">Tablas</h3>
+                      <span class="text-xs text-white/40">({{ tables.length }})</span>
+                    </div>
+                    <button
+                      type="button"
                       @click="loadTables"
-                      :loading="loadingTables"
-                      class="h-6 px-2 text-xs text-white/60 hover:text-white"
+                      :disabled="loadingTables"
+                      class="h-6 w-6 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors duration-200 text-white/60 hover:text-white disabled:opacity-50"
+                      title="Actualizar tablas"
                     >
                       <RefreshCw class="h-3 w-3" :class="{ 'animate-spin': loadingTables }" />
-                    </Button>
+                    </button>
                   </div>
-                  <div v-if="loadingTables" class="px-3 text-xs text-white/50">
-                    Cargando tablas...
+                  
+                  <div v-if="loadingTables" class="px-3 py-4 text-center">
+                    <div class="inline-flex items-center gap-2 text-xs text-white/50">
+                      <RefreshCw class="h-3 w-3 animate-spin" />
+                      <span>Cargando tablas...</span>
+                    </div>
                   </div>
-                  <div v-else-if="tables.length === 0" class="px-3 text-xs text-white/50">
-                    No hay tablas
+                  
+                  <div v-else-if="tables.length === 0" class="px-3 py-4 text-center">
+                    <div class="flex flex-col items-center gap-2">
+                      <Database class="h-8 w-8 text-white/20" />
+                      <p class="text-xs text-white/50">No hay tablas disponibles</p>
+                    </div>
                   </div>
-                  <div v-else class="space-y-1">
+                  
+                  <div v-else class="space-y-1.5 px-3 max-h-96 overflow-y-auto scrollbar-hide">
                     <button
                       v-for="table in tables"
                       :key="table.name"
-                      class="w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-white/5 transition-colors duration-200 group flex items-center justify-between"
+                      class="w-full text-left px-3 py-2.5 text-xs rounded-lg hover:bg-gradient-to-r hover:from-[#e78a53]/10 hover:to-transparent active:bg-[#e78a53]/20 transition-all duration-200 group flex items-center justify-between border border-transparent hover:border-[#e78a53]/20"
                       @click="insertTableName(table.name)"
+                      title="Click para insertar '{{ table.name }}' en el editor"
                     >
-                      <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 rounded-full bg-[#e78a53]"></div>
-                        <span class="font-mono text-white/80 group-hover:text-white">{{ table.name }}</span>
+                      <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                        <div class="w-2.5 h-2.5 rounded-full bg-[#e78a53] flex-shrink-0 shadow-lg shadow-[#e78a53]/50 group-hover:shadow-[#e78a53]/70 transition-shadow"></div>
+                        <span class="font-mono text-white/80 group-hover:text-white truncate font-medium">{{ table.name }}</span>
                       </div>
-                      <span v-if="table.rowCount !== undefined" class="text-xs text-white/40">
+                      <span v-if="table.rowCount !== undefined" class="text-xs text-white/40 ml-2 flex-shrink-0 font-medium">
                         {{ table.rowCount.toLocaleString() }}
                       </span>
                     </button>
                   </div>
+                </div>
+                
+                <!-- Empty state when no database is selected -->
+                <div v-else class="pt-4 px-3 text-center">
+                  <p class="text-xs text-white/50">Selecciona una base de datos para ver sus tablas</p>
                 </div>
               </div>
             </CardContent>
@@ -139,9 +161,8 @@
                     </Button>
                     <Button
                       @click="executeQuery"
-                      :disabled="!selectedDb || !queryText.trim() || isRunning"
                       :loading="isRunning"
-                      class="bg-gradient-to-r from-[#e78a53] to-[#f59a63] hover:from-[#f59a63] hover:to-[#e78a53] shadow-lg shadow-[#e78a53]/30"
+                      class="!bg-gradient-to-r !from-[#e78a53] !to-[#f59a63] hover:!from-[#f59a63] hover:!to-[#e78a53] !text-white !shadow-lg !shadow-[#e78a53]/30 hover:!shadow-[#e78a53]/50 !border-0"
                     >
                       Ejecutar
                     </Button>
@@ -257,9 +278,11 @@ function toggleEngine(engine: string) {
 
 async function selectDatabase(db: DatabaseType) {
   sqlStore.selectDatabase(db)
-  // Load tables when database is selected
+  // Always load tables when database is selected
   if (db) {
     await loadTables()
+  } else {
+    sqlStore.tables = []
   }
 }
 
@@ -310,9 +333,9 @@ onMounted(async () => {
     if (databases.value.length > 0) {
       expandedEngines.value = groupedDatabases.value
     }
-    // Load tables if a database is selected
+    // Always load tables if a database is selected
     if (selectedDb.value) {
-      await loadTables()
+      await sqlStore.fetchTables(selectedDb.value)
     }
   } catch (error) {
     // Silently fail - using mock data
