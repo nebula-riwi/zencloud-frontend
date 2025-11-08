@@ -128,9 +128,48 @@ body,
 
 /* Keep cursor hidden even on inputs and textareas */
 input,
-textarea,
+textarea {
+  cursor: none !important;
+}
+
+/* Select elements should also hide default cursor but allow custom cursor */
 select {
   cursor: none !important;
+}
+
+/* Custom styling for select dropdowns to match app aesthetic */
+select:not([class*="pr-"]) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23ffffff' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1.25em 1.25em;
+  padding-right: 2.5rem;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* For selects with custom padding, adjust background position */
+select[class*="pr-10"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23ffffff' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1.25em 1.25em;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+select:focus {
+  outline: none;
+  border-color: #e78a53;
+  box-shadow: 0 0 0 3px rgba(231, 138, 83, 0.1);
+}
+
+select option {
+  background-color: #000;
+  color: #fff;
+  padding: 0.5rem;
 }
 
 /* Disabled elements show not-allowed cursor */
@@ -139,6 +178,16 @@ a[disabled],
 .disabled,
 [disabled] {
   cursor: not-allowed !important;
+}
+
+/* Ensure select dropdowns work with custom cursor */
+select:not(:disabled) {
+  cursor: none !important;
+}
+
+select:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.5;
 }
 
 /* Remove focus outline from toggle buttons in auth modal */

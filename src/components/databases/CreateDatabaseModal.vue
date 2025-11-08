@@ -49,21 +49,16 @@
                   v-model="formData.engine"
                   required
                   :disabled="loading || !!preselectedEngine"
-                  class="w-full pl-12 pr-4 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:border-white/20 hover:bg-black/50 focus:scale-[1.02] focus:shadow-lg focus:shadow-[#e78a53]/20 appearance-none cursor-pointer"
+                  class="w-full pl-12 pr-10 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:border-white/20 hover:bg-black/50 focus:scale-[1.02] focus:shadow-lg focus:shadow-[#e78a53]/20"
                 >
-                  <option value="" disabled class="bg-black text-white">Selecciona un motor</option>
-                  <option value="mysql" class="bg-black text-white">MySQL</option>
-                  <option value="postgresql" class="bg-black text-white">PostgreSQL</option>
-                  <option value="mongodb" class="bg-black text-white">MongoDB</option>
-                  <option value="sqlserver" class="bg-black text-white">SQL Server</option>
-                  <option value="redis" class="bg-black text-white">Redis</option>
-                  <option value="cassandra" class="bg-black text-white">Cassandra</option>
+                  <option value="" disabled>Selecciona un motor</option>
+                  <option value="mysql">MySQL</option>
+                  <option value="postgresql">PostgreSQL</option>
+                  <option value="mongodb">MongoDB</option>
+                  <option value="sqlserver">SQL Server</option>
+                  <option value="redis">Redis</option>
+                  <option value="cassandra">Cassandra</option>
                 </select>
-                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                  <svg class="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
               </div>
             </div>
 

@@ -31,65 +31,9 @@
         </div>
       </Transition>
 
-      <!-- Current Plan with enhanced styling -->
-      <Transition name="fade-up" appear :delay="100">
-        <Card class="group relative overflow-hidden border-white/10 hover:border-[#e78a53]/40 transition-colors duration-300">
-          <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/5 via-transparent to-transparent opacity-50"></div>
-          <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/0 to-[#e78a53]/0 group-hover:from-[#e78a53]/5 group-hover:to-transparent transition-all duration-500 pointer-events-none"></div>
-          <CardHeader class="relative z-10 border-b border-white/10">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-1 h-8 bg-gradient-to-b from-[#e78a53] to-transparent rounded-full"></div>
-                <div>
-                  <CardTitle class="text-2xl text-white" style="text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);">Plan Actual</CardTitle>
-                  <CardDescription class="text-white/60 mt-1">Tu plan de suscripción activo</CardDescription>
-                </div>
-              </div>
-              <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#e78a53]/20 to-[#e78a53]/10 flex items-center justify-center border border-[#e78a53]/30 shadow-lg shadow-[#e78a53]/20">
-                <CreditCard class="w-6 h-6 text-[#e78a53]" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent class="relative z-10 pt-6">
-            <div class="flex items-center justify-between">
-              <div class="space-y-3">
-                <div class="flex items-center gap-3">
-                  <p class="text-4xl font-bold text-white" style="text-shadow: 0 0 25px rgba(255, 255, 255, 0.4), 0 0 50px rgba(255, 255, 255, 0.2);">
-                    {{ currentPlan?.name || 'Gratis' }}
-                  </p>
-                  <Badge 
-                    v-if="currentPlan?.id !== 'free'"
-                    class="bg-gradient-to-r from-[#e78a53] to-[#f59a63] text-white border-0 shadow-lg shadow-[#e78a53]/30"
-                  >
-                    Activo
-                  </Badge>
-                </div>
-                <p class="text-white/70 text-lg flex items-center gap-2">
-                  <span>{{ currentPlan?.price === 0 ? 'Plan gratuito' : `$${currentPlan?.price.toLocaleString()}/mes` }}</span>
-                  <span v-if="currentPlan?.price !== 0" class="text-sm text-white/50">({{ currentPlan?.maxDatabases }} bases por motor)</span>
-                </p>
-                <div v-if="currentPlan?.price !== 0" class="flex items-center gap-2 mt-4">
-                  <div class="flex-1 h-2 bg-white/5 rounded-full overflow-hidden max-w-md">
-                    <div class="h-full bg-gradient-to-r from-[#e78a53] to-[#f59a63] rounded-full" style="width: 75%"></div>
-                  </div>
-                  <span class="text-xs text-white/50 font-medium">75% usado</span>
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                @click="handleUpgrade"
-                class="border-white/10 hover:border-[#e78a53]/40 bg-black/30 hover:bg-black/40 transition-all"
-              >
-                Actualizar Plan
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </Transition>
-
       <!-- Plans with individual animations -->
       <div class="grid gap-6 md:grid-cols-3 relative z-10">
-        <Transition name="fade-up" appear :delay="200">
+        <Transition name="fade-up" appear :delay="100">
           <Card 
             :key="plans[0].id"
             class="group relative overflow-hidden border-white/10 hover:border-[#e78a53]/40 transition-colors duration-300"
@@ -148,7 +92,7 @@
           </Card>
         </Transition>
 
-        <Transition name="fade-up" appear :delay="300">
+        <Transition name="fade-up" appear :delay="200">
           <Card 
             :key="plans[1].id"
             class="group relative overflow-hidden border-white/10 hover:border-[#e78a53]/40 transition-colors duration-300"
@@ -207,7 +151,7 @@
           </Card>
         </Transition>
 
-        <Transition name="fade-up" appear :delay="400">
+        <Transition name="fade-up" appear :delay="300">
           <Card 
             :key="plans[2].id"
             class="group relative overflow-hidden border-white/10 hover:border-[#e78a53]/40 transition-colors duration-300"
@@ -268,7 +212,7 @@
       </div>
 
       <!-- Payment History with enhanced styling -->
-      <Transition name="fade-up" appear :delay="500">
+      <Transition name="fade-up" appear :delay="400">
         <Card class="group relative overflow-hidden border-white/10 hover:border-[#e78a53]/40 transition-colors duration-300">
           <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/5 via-transparent to-transparent opacity-50"></div>
           <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/0 to-[#e78a53]/0 group-hover:from-[#e78a53]/5 group-hover:to-transparent transition-all duration-500 pointer-events-none"></div>
@@ -347,7 +291,7 @@ import CardContent from '@/components/ui/CardContent.vue'
 import CardFooter from '@/components/ui/CardFooter.vue'
 import Button from '@/components/ui/Button.vue'
 import Badge from '@/components/ui/Badge.vue'
-import { Crown, Sparkles, Zap, Receipt, CreditCard } from 'lucide-vue-next'
+import { Crown, Sparkles, Zap, Receipt } from 'lucide-vue-next'
 import type { Plan, PaymentHistory } from '@/types'
 import { storeToRefs } from 'pinia'
 
