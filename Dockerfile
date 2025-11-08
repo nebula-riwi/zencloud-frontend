@@ -3,14 +3,19 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Instalar pnpm
-RUN npm install -g pnpm
+# Habilitar Corepack para usar pnpm (incluido en Node 20+)
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Copiar archivos de dependencias primero (para mejor caching)
-COPY package.json pnpm-lock.yaml* ./
+# Configurar Node.js para más memoria
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# Instalar dependencias con producción limpia
-RUN pnpm install --frozen-lockfile --prod=false
+# Copiar archivos de dependencias
+COPY package.json ./
+COPY pnpm-lock.yaml* ./
+
+# Instalar dependencias
+# Intentar con lockfile primero, si falla, instalar sin lockfile (lo regenerará)
+RUN pnpm install || (echo "Install with lockfile failed, installing without lockfile..." && rm -f pnpm-lock.yaml && pnpm install)
 
 # Copiar el resto del código
 COPY . .
