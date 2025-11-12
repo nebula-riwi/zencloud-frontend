@@ -11,7 +11,7 @@ export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
       // Llamar al endpoint de login del backend
-      const response = await apiClient.post<LoginResponse>('/Auth/login', credentials)
+      const response = await apiClient.post<LoginResponse>('/api/Auth/login', credentials)
       
       const token = response.data.Token || response.data.token
       if (!token) {
@@ -43,7 +43,7 @@ export const authService = {
   async register(data: RegisterData): Promise<RegisterResponse> {
     try {
       // Llamar al endpoint de registro del backend
-      const response = await apiClient.post<RegisterResponse>('/Auth/register', {
+      const response = await apiClient.post<RegisterResponse>('/api/Auth/register', {
         email: data.email,
         password: data.password,
         confirmPassword: data.confirmPassword,
@@ -75,7 +75,7 @@ export const authService = {
       // Intentar obtener las bases de datos del usuario como verificación
       // Si el token es válido, la petición tendrá éxito
       // Si no, el interceptor manejará el 401
-      const token = sessionStorage.getItem('auth_token')
+      const token = sessionStorage.getItem('Token')
       if (!token) {
         return { valid: false }
       }
@@ -97,7 +97,7 @@ export const authService = {
    * @returns Información del usuario
    */
   async getCurrentUser(): Promise<AuthResponse['user']> {
-    const token = sessionStorage.getItem('auth_token')
+    const token = sessionStorage.getItem('Token')
     if (!token) {
       throw new Error('No hay token de autenticación')
     }

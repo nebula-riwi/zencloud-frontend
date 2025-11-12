@@ -151,6 +151,12 @@ export interface SqlQuery {
   query: string
 }
 
+export interface DatabaseTable {
+  name: string
+  type: string
+  rowCount: number
+}
+
 export interface SqlResult {
   success: boolean
   data?: any[]

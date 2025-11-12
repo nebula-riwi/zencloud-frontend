@@ -103,14 +103,29 @@ apiClient.interceptors.response.use(
 
     // Manejo de otros errores HTTP
     const status = error.response?.status
-    const errorMessage = error.response?.data?.message || error.message || 'An error occurred'
+    const errorData = error.response?.data as ApiError
+    const errorMessage = errorData?.message || error.message || 'An error occurred'
     
     if (status && status >= 500) {
       console.error('Server error:', status, errorMessage)
-    const toast = getToastStore()
-    toast?.error('Error del servidor', 'Ocurrió un problema interno. Inténtalo más tarde.')
+      const toast = getToastStore()
+      toast?.error('Error del servidor', 'Ocurrió un problema interno. Inténtalo más tarde.')
+    } else if (status === 422) {
+      // Errores de validación - mostrar el primer error o el mensaje general
+      console.warn('Validation error:', status, errorData)
+      const toast = getToastStore()
+      
+      // Si hay errores de campos específicos, mostrar el primero
+      if (errorData?.errors && Object.keys(errorData.errors).length > 0) {
+        const firstField = Object.keys(errorData.errors)[0]
+        const firstError = errorData.errors[firstField]?.[0] || errorMessage
+        toast?.warning('Error de validación', firstError)
+      } else {
+        toast?.warning('Error de validación', errorMessage)
+      }
     } else if (status && status >= 400) {
       console.warn('Client error:', status, errorMessage)
+      // No mostrar toast aquí, dejar que cada servicio maneje su propio error
     }
     
     return Promise.reject(error)

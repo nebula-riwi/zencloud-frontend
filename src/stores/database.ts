@@ -75,11 +75,11 @@ export const useDatabaseStore = defineStore('database', () => {
     }
   }
 
-  async function rotateCredentials(_id: string): Promise<DatabaseCredentials> {
+  async function rotateCredentials(id: string): Promise<DatabaseCredentials> {
     // El backend no tiene endpoint para rotar credenciales aún
     // Por ahora, retornamos las credenciales actuales
     // TODO: Implementar cuando el backend tenga este endpoint
-    return await this.getCredentials(_id)
+    return await getCredentials(id)
   }
 
   function getDatabasesByEngine(engine: DatabaseEngine | 'all'): Database[] {

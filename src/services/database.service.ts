@@ -13,7 +13,7 @@ export const databaseService = {
    */
   async fetchDatabases(): Promise<Database[]> {
     try {
-      const token = sessionStorage.getItem('auth_token')
+      const token = sessionStorage.getItem('Token')
       if (!token) {
         throw new Error('No hay token de autenticación')
       }
@@ -61,7 +61,7 @@ export const databaseService = {
    */
   async createDatabase(engineId: string): Promise<Database> {
     try {
-      const token = sessionStorage.getItem('auth_token')
+      const token = sessionStorage.getItem('Token')
       if (!token) {
         throw new Error('No hay token de autenticación')
       }
@@ -94,7 +94,7 @@ export const databaseService = {
    */
   async deleteDatabase(instanceId: string): Promise<void> {
     try {
-      const token = sessionStorage.getItem('auth_token')
+      const token = sessionStorage.getItem('Token')
       if (!token) {
         throw new Error('No hay token de autenticación')
       }

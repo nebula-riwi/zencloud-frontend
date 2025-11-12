@@ -44,21 +44,14 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
                   </svg>
                 </div>
-                <Select
+                <CustomSelect
                   id="engine"
                   v-model="formData.engine"
-                  required
+                  :options="engineOptions"
+                  placeholder="Selecciona un motor"
                   :disabled="loading || !!preselectedEngine"
                   class="!pl-12 !pr-12 !py-3.5 uppercase tracking-[0.14em] text-[11px] font-semibold"
-                >
-                  <option value="" disabled>Selecciona un motor</option>
-                  <option value="mysql">MySQL</option>
-                  <option value="postgresql">PostgreSQL</option>
-                  <option value="mongodb">MongoDB</option>
-                  <option value="sqlserver">SQL Server</option>
-                  <option value="redis">Redis</option>
-                  <option value="cassandra">Cassandra</option>
-                </Select>
+                />
               </div>
             </div>
 
@@ -124,7 +117,7 @@ import { ref, reactive, watch } from 'vue'
 import { useDatabaseStore } from '@/stores/database'
 import { useToastStore } from '@/stores/toast'
 import Dialog from '@/components/ui/Dialog.vue'
-import Select from '@/components/ui/Select.vue'
+import CustomSelect from '@/components/ui/CustomSelect.vue'
 import type { DatabaseEngine } from '@/types'
 
 const props = defineProps<{
@@ -146,6 +139,16 @@ const formData = reactive({
 })
 
 const loading = ref(false)
+
+// Engine options for the select
+const engineOptions = [
+  { value: 'mysql', label: 'MySQL' },
+  { value: 'postgresql', label: 'PostgreSQL' },
+  { value: 'mongodb', label: 'MongoDB' },
+  { value: 'sqlserver', label: 'SQL Server' },
+  { value: 'redis', label: 'Redis' },
+  { value: 'cassandra', label: 'Cassandra' },
+]
 
 // Watch for preselected engine
 watch(() => props.preselectedEngine, (newEngine) => {
