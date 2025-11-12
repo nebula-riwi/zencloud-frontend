@@ -45,37 +45,37 @@
             <CardContent class="relative z-10 pt-6 overflow-y-auto" style="max-height: calc(100vh - 20rem);">
               <div class="space-y-4">
                 <!-- Databases List -->
-                <div class="space-y-3">
-                  <div v-for="engine in groupedDatabases" :key="engine" class="space-y-2">
-                    <button
-                      class="w-full text-left px-3 py-2 text-sm font-semibold text-white/90 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200 flex items-center justify-between group"
-                      @click="toggleEngine(engine)"
-                    >
-                      <span>{{ engine }}</span>
-                      <ChevronDown 
-                        class="h-4 w-4 text-white/50 transition-transform duration-200"
-                        :class="{ 'rotate-180': expandedEngines.includes(engine) }"
-                      />
-                    </button>
-                    <Transition name="expand">
-                      <div v-if="expandedEngines.includes(engine)" class="ml-4 space-y-1 border-l border-white/10 pl-3">
-                        <button
-                          v-for="db in getDatabasesByEngine(engine)"
-                          :key="db.id"
-                          class="w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-white/5 transition-colors duration-200 group"
-                          :class="{ 
-                            'bg-gradient-to-r from-[#e78a53]/20 to-[#e78a53]/10 text-[#e78a53] border border-[#e78a53]/30': selectedDb?.id === db.id,
-                            'text-white/70 hover:text-white': selectedDb?.id !== db.id
-                          }"
-                          @click="selectDatabase(db)"
-                        >
-                          <div class="flex items-center gap-2">
-                            <Database class="h-3 w-3" />
-                            <span class="font-medium">{{ db.name }}</span>
-                          </div>
-                        </button>
-                      </div>
-                    </Transition>
+              <div class="space-y-3">
+                <div v-for="engine in groupedDatabases" :key="engine" class="space-y-2">
+                  <button
+                    class="w-full text-left px-3 py-2 text-sm font-semibold text-white/90 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200 flex items-center justify-between group"
+                    @click="toggleEngine(engine)"
+                  >
+                    <span>{{ engine }}</span>
+                    <ChevronDown 
+                      class="h-4 w-4 text-white/50 transition-transform duration-200"
+                      :class="{ 'rotate-180': expandedEngines.includes(engine) }"
+                    />
+                  </button>
+                  <Transition name="expand">
+                    <div v-if="expandedEngines.includes(engine)" class="ml-4 space-y-1 border-l border-white/10 pl-3">
+                      <button
+                        v-for="db in getDatabasesByEngine(engine)"
+                        :key="db.id"
+                        class="w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-white/5 transition-colors duration-200 group"
+                        :class="{ 
+                          'bg-gradient-to-r from-[#e78a53]/20 to-[#e78a53]/10 text-[#e78a53] border border-[#e78a53]/30': selectedDb?.id === db.id,
+                          'text-white/70 hover:text-white': selectedDb?.id !== db.id
+                        }"
+                        @click="selectDatabase(db)"
+                      >
+                        <div class="flex items-center gap-2">
+                          <Database class="h-3 w-3" />
+                          <span class="font-medium">{{ db.name }}</span>
+                        </div>
+                      </button>
+                    </div>
+                  </Transition>
                   </div>
                 </div>
                 
@@ -159,8 +159,8 @@
                     >
                       Limpiar
                     </Button>
-                    <Button
-                      @click="executeQuery"
+                    <Button 
+                      @click="executeQuery" 
                       :loading="isRunning"
                       class="!bg-gradient-to-r !from-[#e78a53] !to-[#f59a63] hover:!from-[#f59a63] hover:!to-[#e78a53] !text-white !shadow-lg !shadow-[#e78a53]/30 hover:!shadow-[#e78a53]/50 !border-0"
                     >

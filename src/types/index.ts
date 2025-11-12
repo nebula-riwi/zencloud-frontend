@@ -8,8 +8,19 @@ export interface User {
 
 export interface AuthResponse {
   token: string
-  refreshToken: string
+  refreshToken?: string
   user: User
+}
+
+// Respuesta del backend para login
+export interface LoginResponse {
+  token?: string
+  Token?: string
+}
+
+// Respuesta del backend para register
+export interface RegisterResponse {
+  message?: string
 }
 
 export interface LoginCredentials {
@@ -20,9 +31,8 @@ export interface LoginCredentials {
 export interface RegisterData {
   email: string
   password: string
-  name: string
-  lastName?: string
-  acceptTerms?: boolean
+  confirmPassword: string
+  fullName: string
 }
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
@@ -42,14 +52,33 @@ export interface ApiError {
 }
 
 export interface Database {
-  id: string
-  name: string
-  engine: DatabaseEngine
-  status: DatabaseStatus
+  id: string // InstanceId del backend
+  name: string // DatabaseName del backend
+  engine: DatabaseEngine // EngineName del backend
+  status: DatabaseStatus // Status del backend
   createdAt: string
   host?: string
-  port?: number
-  username?: string
+  port?: number // AssignedPort del backend
+  username?: string // DatabaseUser del backend
+  connectionString?: string // ConnectionString del backend (opcional, para mostrar)
+}
+
+// Respuesta del backend para DatabaseInstance
+export interface DatabaseInstanceResponse {
+  instanceId: string
+  databaseName: string
+  databaseUser: string
+  assignedPort: number
+  connectionString: string
+  status: string
+  engineName: string
+  createdAt: string
+}
+
+// Request para crear base de datos
+export interface CreateDatabaseRequestDto {
+  userId: string // Guid como string
+  engineId: string // Guid como string
 }
 
 export type DatabaseEngine = 'mysql' | 'postgresql' | 'mongodb' | 'sqlserver' | 'redis' | 'cassandra'
@@ -57,13 +86,29 @@ export type DatabaseEngine = 'mysql' | 'postgresql' | 'mongodb' | 'sqlserver' | 
 export type DatabaseStatus = 'active' | 'creating' | 'stopped' | 'error' | 'deleting'
 
 export interface Plan {
-  id: string
-  name: string
-  price: number
+  id: string | number // PlanId del backend
+  name: string // PlanName del backend
+  price: number // PriceInCOP del backend
   currency: string
-  maxDatabases: number
+  maxDatabases: number // MaxDatabasesPerEngine del backend
   features: string[]
   popular?: boolean
+  durationInDays?: number
+  description?: string
+  isActive?: boolean
+  backendId?: number
+  slug?: string
+}
+
+// Respuesta del backend para Plan
+export interface PlanResponse {
+  planId: number
+  planName: string
+  maxDatabasesPerEngine: number
+  priceInCOP: number
+  durationInDays: number
+  description: string
+  isActive: boolean
 }
 
 export interface PlanQuota {
@@ -79,6 +124,7 @@ export interface DatabaseCredentials {
   password: string
   database: string
   firstView: boolean
+  connectionString?: string
 }
 
 export interface Webhook {
@@ -108,9 +154,22 @@ export interface SqlQuery {
 export interface SqlResult {
   success: boolean
   data?: any[]
+  columns?: string[]
+  rows?: any[][]
   error?: string
+  errorMessage?: string
   executionTime?: number
   affectedRows?: number
+}
+
+// Respuesta del backend para QueryResult
+export interface QueryResultResponse {
+  success: boolean
+  columns: string[]
+  rows: any[][]
+  executionTime: number
+  affectedRows: number
+  errorMessage?: string
 }
 
 export interface UserPreferences {
@@ -128,8 +187,11 @@ export interface PaymentHistory {
 }
 
 export interface MercadoPagoPreference {
-  init_point: string
-  checkout_url: string
-  preference_id: string
+  init_point?: string
+  checkout_url?: string
+  preference_id?: string
+  payment_url?: string // URL de pago del backend
+  plan_name?: string
+  amount?: number
 }
 

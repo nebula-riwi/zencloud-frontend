@@ -1,25 +1,59 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { Plan, PlanQuota, MercadoPagoPreference } from '@/types'
-// import apiClient from '@/services/api' // Backend will be implemented later
+import { planService } from '@/services/plan.service'
 
 export const usePlanStore = defineStore('plan', () => {
   const currentPlan = ref<Plan | null>(null)
+  const plans = ref<Plan[]>([])
   const quotasByEngine = ref<PlanQuota[]>([])
+  const loadingPlans = ref(false)
+
+  const plansById = computed(() => {
+    const map = new Map<number | string, Plan>()
+    plans.value.forEach((plan) => {
+      map.set(plan.id, plan)
+      if (plan.backendId !== undefined) {
+        map.set(plan.backendId, plan)
+      }
+      if (plan.slug) {
+        map.set(plan.slug, plan)
+      }
+    })
+    return map
+  })
+
+  async function ensurePlansLoaded() {
+    if (plans.value.length > 0) return
+    await fetchPlans()
+  }
+
+  async function fetchPlans(): Promise<Plan[]> {
+    loadingPlans.value = true
+    try {
+      const fetchedPlans = await planService.fetchPlans()
+      plans.value = fetchedPlans
+
+      if (!currentPlan.value) {
+        const defaultPlan = fetchedPlans.find((plan) => plan.slug === 'free') ?? fetchedPlans[0] ?? null
+        currentPlan.value = defaultPlan ?? null
+      }
+
+      return fetchedPlans
+    } finally {
+      loadingPlans.value = false
+    }
+  }
 
   async function fetchPlan(): Promise<Plan> {
-    // Mock data - Backend will be implemented later
-    await new Promise(resolve => setTimeout(resolve, 300))
-    const mockPlan: Plan = {
-      id: 'free',
-      name: 'Gratis',
-      price: 0,
-      currency: 'COP',
-      maxDatabases: 2,
-      features: ['2 bases por motor', 'Soporte básico'],
+    await ensurePlansLoaded()
+    if (!currentPlan.value && plans.value.length > 0) {
+      currentPlan.value = plans.value[0]
     }
-    currentPlan.value = mockPlan
-    return mockPlan
+    if (!currentPlan.value) {
+      throw new Error('No hay planes disponibles')
+    }
+    return currentPlan.value
   }
 
   async function fetchQuotas(): Promise<PlanQuota[]> {
@@ -27,20 +61,30 @@ export const usePlanStore = defineStore('plan', () => {
     return quotasByEngine.value
   }
 
-  async function upgradePlan(_planId: string): Promise<MercadoPagoPreference> {
-    // Mock - Backend will be implemented later
-    await new Promise(resolve => setTimeout(resolve, 300))
-    return {
-      init_point: 'https://sandbox.mercadopago.com/checkout/v1/redirect?pref_id=mock',
-      checkout_url: 'https://sandbox.mercadopago.com/checkout/v1/redirect?pref_id=mock',
-      preference_id: 'mock-preference-id',
+  async function upgradePlan(planIdentifier: string | number): Promise<MercadoPagoPreference> {
+    await ensurePlansLoaded()
+
+    const plan = plansById.value.get(planIdentifier)
+    if (!plan || plan.backendId === undefined) {
+      throw new Error('Plan no encontrado')
     }
+
+    const response = await planService.createSubscription(plan.backendId)
+
+    const paymentPreference: MercadoPagoPreference = {
+      init_point: response.payment_url,
+      checkout_url: response.payment_url,
+      payment_url: response.payment_url,
+      plan_name: response.plan_name,
+      amount: response.amount,
+    }
+
+    return paymentPreference
   }
 
   async function checkCheckoutStatus(_preferenceId: string): Promise<{ status: string; plan?: Plan }> {
-    // Mock - Backend will be implemented later
-    await new Promise(resolve => setTimeout(resolve, 300))
-    return { status: 'approved' }
+    // No hay endpoint dedicado aún, devolver estado desconocido
+    return { status: 'unknown' }
   }
 
   function updateQuota(engine: string, used: number) {
@@ -76,6 +120,9 @@ export const usePlanStore = defineStore('plan', () => {
     updateQuota,
     getQuotaForEngine,
     canCreateDatabase,
+    plans,
+    loadingPlans,
+    fetchPlans,
   }
 })
 

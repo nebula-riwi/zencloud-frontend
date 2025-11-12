@@ -157,7 +157,7 @@
               </p>
             </div>
 
-            <form @submit.prevent="handleSave" class="space-y-5">
+        <form @submit.prevent="handleSave" class="space-y-5">
               <!-- Name -->
               <div class="space-y-2">
                 <label for="webhook-name" class="block text-sm font-semibold text-white/90 transition-colors duration-200">
@@ -171,15 +171,15 @@
                   </div>
                   <input
                     id="webhook-name"
-                    v-model="formData.name"
+              v-model="formData.name" 
                     type="text"
                     placeholder="Mi Webhook"
-                    required
+              required 
                     :disabled="saving"
                     autocomplete="off"
                     class="w-full pl-12 pr-4 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:border-white/20 hover:bg-black/50 focus:scale-[1.02] focus:shadow-lg focus:shadow-[#e78a53]/20"
-                  />
-                </div>
+            />
+          </div>
               </div>
 
               <!-- URL -->
@@ -195,15 +195,15 @@
                   </div>
                   <input
                     id="webhook-url"
-                    v-model="formData.url"
-                    type="url"
+              v-model="formData.url" 
+              type="url" 
                     placeholder="https://example.com/webhook"
-                    required
+              required 
                     :disabled="saving"
                     autocomplete="off"
                     class="w-full pl-12 pr-4 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:border-white/20 hover:bg-black/50 focus:scale-[1.02] focus:shadow-lg focus:shadow-[#e78a53]/20 font-mono text-sm"
-                  />
-                </div>
+            />
+          </div>
               </div>
 
               <!-- Event Type -->
@@ -217,25 +217,25 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                   </div>
-                  <select
+                  <Select
                     id="webhook-event"
                     v-model="formData.eventType"
                     required
                     :disabled="saving"
-                    class="w-full pl-12 pr-10 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:border-white/20 hover:bg-black/50 focus:scale-[1.02] focus:shadow-lg focus:shadow-[#e78a53]/20"
+                    class="w-full pl-12 pr-12 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:border-white/20 hover:bg-black/50 focus:scale-[1.02] focus:shadow-lg focus:shadow-[#e78a53]/20 uppercase tracking-[0.14em] text-[11px] font-semibold"
                   >
                     <option value="database_created">Base de datos creada</option>
                     <option value="account_created">Cuenta creada</option>
                     <option value="production_error">Error de producción</option>
-                  </select>
+                  </Select>
                 </div>
-              </div>
+          </div>
 
               <!-- Active Switch -->
               <div class="flex items-center space-x-3 p-4 rounded-xl bg-black/40 border border-white/10 hover:border-white/20 transition-all duration-300">
-                <Switch v-model="formData.active" />
+            <Switch v-model="formData.active" />
                 <label class="text-sm text-white/90 font-medium">Webhook activo</label>
-              </div>
+          </div>
 
               <!-- Submit Button -->
               <button
@@ -254,13 +254,13 @@
 
               <!-- Cancel Button -->
               <button
-                type="button"
-                @click="closeModal"
+              type="button" 
+              @click="closeModal"
                 class="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/80 hover:text-white font-medium text-sm transition-all duration-300 focus:outline-none active:scale-95 hover:scale-[1.02]"
-              >
-                Cancelar
+            >
+              Cancelar
               </button>
-            </form>
+        </form>
           </div>
         </div>
       </div>
@@ -286,6 +286,7 @@ import CardTitle from '@/components/ui/CardTitle.vue'
 import CardDescription from '@/components/ui/CardDescription.vue'
 import CardContent from '@/components/ui/CardContent.vue'
 import Button from '@/components/ui/Button.vue'
+import Select from '@/components/ui/Select.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Loading from '@/components/ui/Loading.vue'
 import Dialog from '@/components/ui/Dialog.vue'

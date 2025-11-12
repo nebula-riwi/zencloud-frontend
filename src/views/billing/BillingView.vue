@@ -32,183 +32,72 @@
       </Transition>
 
       <!-- Plans with individual animations -->
-      <div class="grid gap-6 md:grid-cols-3 relative z-10">
-        <Transition name="fade-up" appear :delay="100">
-          <Card 
-            :key="plans[0].id"
-            class="group relative overflow-hidden border-white/10 hover:border-[#e78a53]/40 transition-colors duration-300"
-            :class="{ 'border-[#e78a53]/50': plans[0].popular }"
-          >
-            <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/0 to-[#e78a53]/0 group-hover:from-[#e78a53]/5 group-hover:to-transparent transition-all duration-500 pointer-events-none"></div>
-            <CardHeader class="relative z-10">
-              <div class="flex items-start justify-between mb-2">
-                <div class="flex-1">
-                  <div class="flex items-center gap-3 mb-2">
-                    <CardTitle class="text-2xl text-white" style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);">
-                      {{ plans[0].name }}
-                    </CardTitle>
-                    <Badge 
-                      v-if="plans[0].popular" 
-                      class="bg-gradient-to-r from-[#e78a53] to-[#f59a63] text-white border-0 shadow-lg shadow-[#e78a53]/30 text-xs px-2 py-0.5"
-                    >
-                      Popular
-                    </Badge>
+      <div class="relative z-10">
+        <div v-if="loadingPlans" class="grid gap-6 md:grid-cols-3">
+          <div v-for="index in 3" :key="`plan-skeleton-${index}`" class="h-72 rounded-2xl bg-white/5 animate-pulse border border-white/10"></div>
+        </div>
+        <div v-else class="grid gap-6 md:grid-cols-3">
+          <TransitionGroup name="fade-up" appear>
+            <Card
+              v-for="(plan, index) in displayPlans"
+              :key="plan.slug ?? plan.id ?? index"
+              class="group relative overflow-hidden border-white/10 hover:border-[#e78a53]/40 transition-colors duration-300"
+              :class="{ 'border-[#e78a53]/50': plan.popular }"
+              :style="{ transitionDelay: `${(index + 1) * 100}ms` }"
+            >
+              <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/0 to-[#e78a53]/0 group-hover:from-[#e78a53]/5 group-hover:to-transparent transition-all duration-500 pointer-events-none"></div>
+              <CardHeader class="relative z-10">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-2">
+                      <CardTitle class="text-2xl text-white" style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);">
+                        {{ plan.name }}
+                      </CardTitle>
+                      <Badge 
+                        v-if="plan.popular" 
+                        class="bg-gradient-to-r from-[#e78a53] to-[#f59a63] text-white border-0 shadow-lg shadow-[#e78a53]/30 text-xs px-2 py-0.5"
+                      >
+                        Popular
+                      </Badge>
+                    </div>
+                    <CardDescription class="text-white/60">
+                      {{ plan.maxDatabases }} bases por motor
+                    </CardDescription>
                   </div>
-                  <CardDescription class="text-white/60">
-                    {{ plans[0].maxDatabases }} bases por motor
-                  </CardDescription>
-                </div>
-                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[#e78a53]/20 to-[#e78a53]/10 flex items-center justify-center border border-[#e78a53]/30">
-                  <Sparkles v-if="plans[0].id === 'free'" class="h-5 w-5 text-[#e78a53]" />
-                  <Zap v-else-if="plans[0].id === 'intermediate'" class="h-5 w-5 text-[#e78a53]" />
-                  <Crown v-else class="h-5 w-5 text-[#e78a53]" />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent class="relative z-10">
-              <div class="text-4xl font-bold mb-6 text-white" style="text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);">
-                {{ plans[0].price === 0 ? 'Gratis' : `$${plans[0].price.toLocaleString()}/mes` }}
-              </div>
-              <ul class="space-y-3 text-sm">
-                <li v-for="feature in plans[0].features" :key="feature" class="flex items-center gap-3 text-white/80">
-                  <div class="w-2 h-2 rounded-full bg-[#e78a53] shadow-lg shadow-[#e78a53]/50"></div>
-                  <span>{{ feature }}</span>
-                </li>
-              </ul>
-            </CardContent>
-            <CardFooter class="relative z-10">
-              <Button 
-                class="w-full font-semibold" 
-                :variant="plans[0].id === currentPlan?.id ? 'outline' : 'primary'"
-                :class="plans[0].id === currentPlan?.id 
-                  ? 'border-white/20 bg-black/40 text-white/70 hover:bg-black/50 hover:border-white/30' 
-                  : 'bg-gradient-to-r from-[#e78a53] to-[#f59a63] hover:from-[#f59a63] hover:to-[#e78a53] text-white shadow-lg shadow-[#e78a53]/30 hover:shadow-[#e78a53]/50'"
-                @click="upgradeToPlan(plans[0].id)"
-                :disabled="plans[0].id === currentPlan?.id"
-              >
-                {{ plans[0].id === currentPlan?.id ? 'Plan Actual' : 'Actualizar Plan' }}
-              </Button>
-            </CardFooter>
-          </Card>
-        </Transition>
-
-        <Transition name="fade-up" appear :delay="200">
-          <Card 
-            :key="plans[1].id"
-            class="group relative overflow-hidden border-white/10 hover:border-[#e78a53]/40 transition-colors duration-300"
-            :class="{ 'border-[#e78a53]/50': plans[1].popular }"
-          >
-            <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/0 to-[#e78a53]/0 group-hover:from-[#e78a53]/5 group-hover:to-transparent transition-all duration-500 pointer-events-none"></div>
-            <CardHeader class="relative z-10">
-              <div class="flex items-start justify-between mb-2">
-                <div class="flex-1">
-                  <div class="flex items-center gap-3 mb-2">
-                    <CardTitle class="text-2xl text-white" style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);">
-                      {{ plans[1].name }}
-                    </CardTitle>
-                    <Badge 
-                      v-if="plans[1].popular" 
-                      class="bg-gradient-to-r from-[#e78a53] to-[#f59a63] text-white border-0 shadow-lg shadow-[#e78a53]/30 text-xs px-2 py-0.5"
-                    >
-                      Popular
-                    </Badge>
+                  <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[#e78a53]/20 to-[#e78a53]/10 flex items-center justify-center border border-[#e78a53]/30">
+                    <Sparkles v-if="plan.slug === 'free'" class="h-5 w-5 text-[#e78a53]" />
+                    <Zap v-else-if="plan.slug === 'intermediate'" class="h-5 w-5 text-[#e78a53]" />
+                    <Crown v-else class="h-5 w-5 text-[#e78a53]" />
                   </div>
-                  <CardDescription class="text-white/60">
-                    {{ plans[1].maxDatabases }} bases por motor
-                  </CardDescription>
                 </div>
-                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[#e78a53]/20 to-[#e78a53]/10 flex items-center justify-center border border-[#e78a53]/30">
-                  <Sparkles v-if="plans[1].id === 'free'" class="h-5 w-5 text-[#e78a53]" />
-                  <Zap v-else-if="plans[1].id === 'intermediate'" class="h-5 w-5 text-[#e78a53]" />
-                  <Crown v-else class="h-5 w-5 text-[#e78a53]" />
+              </CardHeader>
+              <CardContent class="relative z-10">
+                <div class="text-4xl font-bold mb-6 text-white" style="text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);">
+                  {{ plan.price === 0 ? 'Gratis' : `$${plan.price.toLocaleString()}/mes` }}
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent class="relative z-10">
-              <div class="text-4xl font-bold mb-6 text-white" style="text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);">
-                {{ plans[1].price === 0 ? 'Gratis' : `$${plans[1].price.toLocaleString()}/mes` }}
-              </div>
-              <ul class="space-y-3 text-sm">
-                <li v-for="feature in plans[1].features" :key="feature" class="flex items-center gap-3 text-white/80">
-                  <div class="w-2 h-2 rounded-full bg-[#e78a53] shadow-lg shadow-[#e78a53]/50"></div>
-                  <span>{{ feature }}</span>
-                </li>
-              </ul>
-            </CardContent>
-            <CardFooter class="relative z-10">
-              <Button 
-                class="w-full font-semibold" 
-                :variant="plans[1].id === currentPlan?.id ? 'outline' : 'primary'"
-                :class="plans[1].id === currentPlan?.id 
-                  ? 'border-white/20 bg-black/40 text-white/70 hover:bg-black/50 hover:border-white/30' 
-                  : 'bg-gradient-to-r from-[#e78a53] to-[#f59a63] hover:from-[#f59a63] hover:to-[#e78a53] text-white shadow-lg shadow-[#e78a53]/30 hover:shadow-[#e78a53]/50'"
-                @click="upgradeToPlan(plans[1].id)"
-                :disabled="plans[1].id === currentPlan?.id"
-              >
-                {{ plans[1].id === currentPlan?.id ? 'Plan Actual' : 'Actualizar Plan' }}
-              </Button>
-            </CardFooter>
-          </Card>
-        </Transition>
-
-        <Transition name="fade-up" appear :delay="300">
-          <Card 
-            :key="plans[2].id"
-            class="group relative overflow-hidden border-white/10 hover:border-[#e78a53]/40 transition-colors duration-300"
-            :class="{ 'border-[#e78a53]/50': plans[2].popular }"
-          >
-            <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/0 to-[#e78a53]/0 group-hover:from-[#e78a53]/5 group-hover:to-transparent transition-all duration-500 pointer-events-none"></div>
-            <CardHeader class="relative z-10">
-              <div class="flex items-start justify-between mb-2">
-                <div class="flex-1">
-                  <div class="flex items-center gap-3 mb-2">
-                    <CardTitle class="text-2xl text-white" style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);">
-                      {{ plans[2].name }}
-                    </CardTitle>
-                    <Badge 
-                      v-if="plans[2].popular" 
-                      class="bg-gradient-to-r from-[#e78a53] to-[#f59a63] text-white border-0 shadow-lg shadow-[#e78a53]/30 text-xs px-2 py-0.5"
-                    >
-                      Popular
-                    </Badge>
-                  </div>
-                  <CardDescription class="text-white/60">
-                    {{ plans[2].maxDatabases }} bases por motor
-                  </CardDescription>
-                </div>
-                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[#e78a53]/20 to-[#e78a53]/10 flex items-center justify-center border border-[#e78a53]/30">
-                  <Sparkles v-if="plans[2].id === 'free'" class="h-5 w-5 text-[#e78a53]" />
-                  <Zap v-else-if="plans[2].id === 'intermediate'" class="h-5 w-5 text-[#e78a53]" />
-                  <Crown v-else class="h-5 w-5 text-[#e78a53]" />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent class="relative z-10">
-              <div class="text-4xl font-bold mb-6 text-white" style="text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);">
-                {{ plans[2].price === 0 ? 'Gratis' : `$${plans[2].price.toLocaleString()}/mes` }}
-              </div>
-              <ul class="space-y-3 text-sm">
-                <li v-for="feature in plans[2].features" :key="feature" class="flex items-center gap-3 text-white/80">
-                  <div class="w-2 h-2 rounded-full bg-[#e78a53] shadow-lg shadow-[#e78a53]/50"></div>
-                  <span>{{ feature }}</span>
-                </li>
-              </ul>
-            </CardContent>
-            <CardFooter class="relative z-10">
-              <Button 
-                class="w-full font-semibold" 
-                :variant="plans[2].id === currentPlan?.id ? 'outline' : 'primary'"
-                :class="plans[2].id === currentPlan?.id 
-                  ? 'border-white/20 bg-black/40 text-white/70 hover:bg-black/50 hover:border-white/30' 
-                  : 'bg-gradient-to-r from-[#e78a53] to-[#f59a63] hover:from-[#f59a63] hover:to-[#e78a53] text-white shadow-lg shadow-[#e78a53]/30 hover:shadow-[#e78a53]/50'"
-                @click="upgradeToPlan(plans[2].id)"
-                :disabled="plans[2].id === currentPlan?.id"
-              >
-                {{ plans[2].id === currentPlan?.id ? 'Plan Actual' : 'Actualizar Plan' }}
-              </Button>
-            </CardFooter>
-          </Card>
-        </Transition>
+                <ul class="space-y-3 text-sm">
+                  <li v-for="feature in plan.features" :key="feature" class="flex items-center gap-3 text-white/80">
+                    <div class="w-2 h-2 rounded-full bg-[#e78a53] shadow-lg shadow-[#e78a53]/50"></div>
+                    <span>{{ feature }}</span>
+                  </li>
+                </ul>
+              </CardContent>
+              <CardFooter class="relative z-10">
+                <Button 
+                  class="w-full font-semibold" 
+                  :variant="isPlanActive(plan) ? 'outline' : 'primary'"
+                  :class="isPlanActive(plan) 
+                    ? 'border-white/20 bg-black/40 text-white/70 hover:bg-black/50 hover:border-white/30' 
+                    : 'bg-gradient-to-r from-[#e78a53] to-[#f59a63] hover:from-[#f59a63] hover:to-[#e78a53] text-white shadow-lg shadow-[#e78a53]/30 hover:shadow-[#e78a53]/50'"
+                  @click="upgradeToPlan(plan)"
+                  :disabled="isPlanActive(plan)"
+                >
+                  {{ isPlanActive(plan) ? 'Plan Actual' : 'Actualizar Plan' }}
+                </Button>
+              </CardFooter>
+            </Card>
+          </TransitionGroup>
+        </div>
       </div>
 
       <!-- Payment History with enhanced styling -->
@@ -279,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { usePlanStore } from '@/stores/plan'
 import { useToastStore } from '@/stores/toast'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
@@ -297,55 +186,78 @@ import { storeToRefs } from 'pinia'
 
 const planStore = usePlanStore()
 const toastStore = useToastStore()
-const { currentPlan } = storeToRefs(planStore)
+const { currentPlan, plans, loadingPlans } = storeToRefs(planStore)
 
-const plans = ref<Plan[]>([
-  { id: 'free', name: 'Gratis', price: 0, currency: 'COP', maxDatabases: 2, features: ['2 bases por motor', 'Soporte básico'] },
-  { id: 'intermediate', name: 'Intermedio', price: 5000, currency: 'COP', maxDatabases: 5, features: ['5 bases por motor', 'Soporte prioritario'], popular: true },
-  { id: 'advanced', name: 'Avanzado', price: 10000, currency: 'COP', maxDatabases: 10, features: ['10 bases por motor', 'Soporte 24/7'] },
-])
+const fallbackPlans: Plan[] = [
+  { id: 'free', slug: 'free', name: 'Gratis', price: 0, currency: 'COP', maxDatabases: 2, features: ['2 bases por motor', 'Soporte básico'] },
+  { id: 'intermediate', slug: 'intermediate', name: 'Intermedio', price: 5000, currency: 'COP', maxDatabases: 5, features: ['5 bases por motor', 'Soporte prioritario'], popular: true },
+  { id: 'advanced', slug: 'advanced', name: 'Avanzado', price: 10000, currency: 'COP', maxDatabases: 10, features: ['10 bases por motor', 'Soporte 24/7'] },
+]
+
+const displayPlans = computed<Plan[]>(() => {
+  if (plans.value.length > 0) return plans.value
+  return fallbackPlans
+})
+
+const activePlanInfo = computed(() => ({
+  backendId: currentPlan.value?.backendId,
+  slug: currentPlan.value?.slug,
+  id: currentPlan.value?.id,
+}))
+
+function isPlanActive(plan: Plan): boolean {
+  if (plan.backendId !== undefined && activePlanInfo.value.backendId !== undefined) {
+    return plan.backendId === activePlanInfo.value.backendId
+  }
+
+  if (plan.slug && activePlanInfo.value.slug) {
+    return plan.slug === activePlanInfo.value.slug
+  }
+
+  if (plan.id && activePlanInfo.value.id) {
+    return plan.id === activePlanInfo.value.id
+  }
+
+  // Si todavía no tenemos información del backend, asumimos que el plan gratuito es el activo por defecto
+  return plan.slug === 'free'
+}
 
 const payments = ref<PaymentHistory[]>([])
 
-async function upgradeToPlan(planId: string) {
+async function upgradeToPlan(plan: Plan) {
   try {
-    const preference = await planStore.upgradePlan(planId)
-    window.location.href = preference.checkout_url
-  } catch (error: any) {
-    toastStore.error('Error', 'No se pudo procesar la actualización del plan')
-  }
-}
-
-function handleUpgrade() {
-  // Scroll to plans
-  const plansSection = document.querySelector('.grid.gap-6')
-  if (plansSection) {
-    plansSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-}
-
-// Check for return from Mercado Pago
-onMounted(async () => {
-  // Load mock data - Backend will be implemented later
-  const params = new URLSearchParams(window.location.search)
-  const preferenceId = params.get('preference_id')
-  if (preferenceId) {
-    try {
-      const status = await planStore.checkCheckoutStatus(preferenceId)
-      if (status.status === 'approved') {
-        toastStore.success('Plan actualizado', 'Tu plan ha sido actualizado correctamente')
-      }
-    } catch (error) {
-      // Silently fail - using mock data
-      console.log('Using mock data - backend not available yet')
+    const identifier = plan.backendId ?? plan.id
+    const preference = await planStore.upgradePlan(identifier)
+    const redirectUrl = preference.payment_url || preference.checkout_url || preference.init_point
+    if (redirectUrl) {
+      window.location.href = redirectUrl
+    } else {
+      throw new Error('No se recibió una URL de pago')
     }
+  } catch (error: any) {
+    const message = error?.response?.data?.message || error?.message || 'No se pudo procesar la actualización del plan'
+    toastStore.error('Error', message)
   }
-  
+}
+
+onMounted(async () => {
+  const params = new URLSearchParams(window.location.search)
+  const statusParam = params.get('status') || params.get('collection_status')
+
+  if (statusParam === 'approved') {
+    toastStore.success('Plan actualizado', 'Tu plan ha sido actualizado correctamente')
+  } else if (statusParam === 'failure' || statusParam === 'rejected') {
+    toastStore.error('Pago rechazado', 'El pago fue rechazado o cancelado')
+  }
+
+  if (statusParam) {
+    window.history.replaceState(null, '', window.location.pathname)
+  }
+
   try {
-    await planStore.fetchPlan()
+    await planStore.fetchPlans()
   } catch (error) {
-    // Silently fail - using mock data
-    console.log('Using mock data - backend not available yet')
+    console.error('No se pudieron cargar los planes desde el backend')
   }
 })
 </script>

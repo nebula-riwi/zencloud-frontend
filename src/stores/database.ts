@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Database, DatabaseEngine, DatabaseCredentials } from '@/types'
-// import apiClient from '@/services/api' // Backend will be implemented later
+import { databaseService, getEngineId } from '@/services/database.service'
 
 export const useDatabaseStore = defineStore('database', () => {
   const databases = ref<Database[]>([])
@@ -11,57 +11,75 @@ export const useDatabaseStore = defineStore('database', () => {
   async function fetchDatabases(_engine?: DatabaseEngine): Promise<Database[]> {
     loading.value = true
     try {
-      // Mock data - Backend will be implemented later
-      await new Promise(resolve => setTimeout(resolve, 500))
-      databases.value = []
-      return []
+      const fetchedDatabases = await databaseService.fetchDatabases()
+      databases.value = fetchedDatabases
+      return fetchedDatabases
+    } catch (error: any) {
+      console.error('Error fetching databases:', error)
+      throw error
     } finally {
       loading.value = false
     }
   }
 
   async function createDatabase(data: { name: string; engine: DatabaseEngine }): Promise<Database> {
-    // Mock - Backend will be implemented later
-    const mockDb: Database = {
-      id: `mock-${Date.now()}`,
-      name: data.name,
-      engine: data.engine,
-      status: 'creating',
-      createdAt: new Date().toISOString(),
+    try {
+      // Obtener el EngineId del engine seleccionado
+      const engineId = getEngineId(data.engine)
+      
+      // Crear la base de datos en el backend
+      const newDatabase = await databaseService.createDatabase(engineId)
+      
+      // Agregar a la lista local
+      databases.value.push(newDatabase)
+      
+      return newDatabase
+    } catch (error: any) {
+      console.error('Error creating database:', error)
+      throw error
     }
-    databases.value.push(mockDb)
-    return mockDb
   }
 
   async function deleteDatabase(id: string): Promise<void> {
-    // Mock - Backend will be implemented later
+    try {
+      await databaseService.deleteDatabase(id)
+      
+      // Remover de la lista local
     databases.value = databases.value.filter((db) => db.id !== id)
+    } catch (error: any) {
+      console.error('Error deleting database:', error)
+      throw error
+    }
   }
 
   async function getCredentials(_id: string): Promise<DatabaseCredentials> {
-    // Mock - Backend will be implemented later
-    await new Promise(resolve => setTimeout(resolve, 300))
+    try {
+      // Obtener la base de datos para extraer las credenciales
+      const database = await databaseService.getDatabaseById(_id)
+      
+      // El backend no tiene un endpoint específico para obtener credenciales
+      // Por ahora, construimos las credenciales desde la información disponible
+      // NOTA: El backend puede necesitar un endpoint específico para esto
     return {
-      host: 'mock-host.example.com',
-      port: 3306,
-      username: 'mock_user',
-      password: 'mock_password',
-      database: 'mock_db',
+        host: database.host || '168.119.182.243', // IP del servidor (del backend)
+        port: database.port || 3306,
+        username: database.username || '',
+        password: '', // El backend no expone la contraseña por seguridad
+        database: database.name,
       firstView: true,
+        connectionString: database.connectionString,
+      }
+    } catch (error: any) {
+      console.error('Error getting credentials:', error)
+      throw error
     }
   }
 
   async function rotateCredentials(_id: string): Promise<DatabaseCredentials> {
-    // Mock - Backend will be implemented later
-    await new Promise(resolve => setTimeout(resolve, 300))
-    return {
-      host: 'mock-host.example.com',
-      port: 3306,
-      username: 'mock_user',
-      password: 'new_mock_password',
-      database: 'mock_db',
-      firstView: true,
-    }
+    // El backend no tiene endpoint para rotar credenciales aún
+    // Por ahora, retornamos las credenciales actuales
+    // TODO: Implementar cuando el backend tenga este endpoint
+    return await this.getCredentials(_id)
   }
 
   function getDatabasesByEngine(engine: DatabaseEngine | 'all'): Database[] {

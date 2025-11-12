@@ -1,0 +1,205 @@
+import apiClient from './api'
+import { getUserIdFromToken } from '@/utils/jwt'
+import type { Database, DatabaseInstanceResponse, CreateDatabaseRequestDto } from '@/types'
+import type { DatabaseEngine } from '@/types'
+
+/**
+ * Servicio para gestionar bases de datos
+ */
+export const databaseService = {
+  /**
+   * Obtiene todas las bases de datos del usuario actual
+   * @returns Lista de bases de datos
+   */
+  async fetchDatabases(): Promise<Database[]> {
+    try {
+      const token = sessionStorage.getItem('auth_token')
+      if (!token) {
+        throw new Error('No hay token de autenticación')
+      }
+
+      const userId = getUserIdFromToken(token)
+      if (!userId) {
+        throw new Error('No se pudo obtener el userId del token')
+      }
+
+      // Llamar al endpoint del backend
+      const response = await apiClient.get<{ data: DatabaseInstanceResponse[] }>(
+        `/api/DatabaseInstance/user/${userId}`
+      )
+
+      // Mapear las respuestas del backend al formato del frontend
+      return response.data.data.map((db) => this.mapDatabaseResponse(db))
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Error al obtener bases de datos'
+      throw new Error(errorMessage)
+    }
+  },
+
+  /**
+   * Obtiene una base de datos por su ID
+   * @param instanceId - ID de la instancia de base de datos
+   * @returns Base de datos
+   */
+  async getDatabaseById(instanceId: string): Promise<Database> {
+    try {
+      const response = await apiClient.get<{ data: DatabaseInstanceResponse }>(
+        `/api/DatabaseInstance/${instanceId}`
+      )
+
+      return this.mapDatabaseResponse(response.data.data)
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Error al obtener base de datos'
+      throw new Error(errorMessage)
+    }
+  },
+
+  /**
+   * Crea una nueva base de datos
+   * @param engineId - ID del motor de base de datos (Guid)
+   * @returns Base de datos creada
+   */
+  async createDatabase(engineId: string): Promise<Database> {
+    try {
+      const token = sessionStorage.getItem('auth_token')
+      if (!token) {
+        throw new Error('No hay token de autenticación')
+      }
+
+      const userId = getUserIdFromToken(token)
+      if (!userId) {
+        throw new Error('No se pudo obtener el userId del token')
+      }
+
+      const request: CreateDatabaseRequestDto = {
+        userId,
+        engineId,
+      }
+
+      const response = await apiClient.post<{ message: string; data: DatabaseInstanceResponse }>(
+        '/api/DatabaseInstance',
+        request
+      )
+
+      return this.mapDatabaseResponse(response.data.data)
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Error al crear base de datos'
+      throw new Error(errorMessage)
+    }
+  },
+
+  /**
+   * Elimina una base de datos
+   * @param instanceId - ID de la instancia de base de datos
+   */
+  async deleteDatabase(instanceId: string): Promise<void> {
+    try {
+      const token = sessionStorage.getItem('auth_token')
+      if (!token) {
+        throw new Error('No hay token de autenticación')
+      }
+
+      const userId = getUserIdFromToken(token)
+      if (!userId) {
+        throw new Error('No se pudo obtener el userId del token')
+      }
+
+      await apiClient.delete(`/api/DatabaseInstance/${instanceId}?userId=${userId}`)
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Error al eliminar base de datos'
+      throw new Error(errorMessage)
+    }
+  },
+
+  /**
+   * Mapea la respuesta del backend al formato del frontend
+   * @param db - Respuesta del backend
+   * @returns Base de datos en formato del frontend
+   */
+  mapDatabaseResponse(db: DatabaseInstanceResponse): Database {
+    // Mapear el estado del backend al formato del frontend
+    const statusMap: Record<string, Database['status']> = {
+      'Active': 'active',
+      'Creating': 'creating',
+      'Stopped': 'stopped',
+      'Error': 'error',
+      'Deleting': 'deleting',
+    }
+
+    // Mapear el nombre del engine (puede venir como "MySQL", "PostgreSQL", etc.)
+    // El backend retorna el nombre como string del enum (ej: "MySQL", "PostgreSQL")
+    const engineNameMap: Record<string, DatabaseEngine> = {
+      'mysql': 'mysql',
+      'MySQL': 'mysql',
+      'postgresql': 'postgresql',
+      'PostgreSQL': 'postgresql',
+      'mongodb': 'mongodb',
+      'MongoDB': 'mongodb',
+      'redis': 'redis',
+      'Redis': 'redis',
+      'cassandra': 'cassandra',
+      'Cassandra': 'cassandra',
+      'sqlserver': 'sqlserver',
+      'SQLServer': 'sqlserver',
+    }
+    
+    const engineName = engineNameMap[db.engineName] || db.engineName.toLowerCase() as DatabaseEngine
+
+    // Extraer información de la connection string si está disponible
+    let host: string | undefined
+    let port: number | undefined
+    let username: string | undefined
+
+    if (db.connectionString) {
+      // Intentar parsear la connection string para extraer host y port
+      // Formato típico: "Server=host;Port=port;User=user;Password=password;Database=database"
+      const connParts = db.connectionString.split(';')
+      connParts.forEach((part) => {
+        const [key, value] = part.split('=')
+        if (key?.toLowerCase() === 'server') host = value
+        if (key?.toLowerCase() === 'port') port = parseInt(value || '0', 10)
+        if (key?.toLowerCase() === 'user') username = value
+      })
+    }
+
+    return {
+      id: db.instanceId,
+      name: db.databaseName,
+      engine: engineName,
+      status: statusMap[db.status] || 'active',
+      createdAt: db.createdAt,
+      host: host || undefined,
+      port: port || db.assignedPort,
+      username: username || db.databaseUser,
+      connectionString: db.connectionString,
+    }
+  },
+}
+
+/**
+ * Mapeo de nombres de engines a IDs (Guid) tal como están registrados en la BD
+ * Si se agregan nuevos engines en el backend, recuerda actualizar este objeto.
+ */
+export const ENGINE_IDS: Partial<Record<DatabaseEngine, string>> = {
+  mysql: '11111111-1111-1111-1111-111111111111',
+  postgresql: '22222222-2222-2222-2222-222222222222',
+  mongodb: '33333333-3333-3333-3333-333333333333',
+  sqlserver: '44444444-4444-4444-4444-444444444444',
+  redis: '55555555-5555-5555-5555-555555555555',
+  // Cassandra aún no está configurado en la BD del backend. Cuando se agregue,
+  // incluye aquí el GUID correspondiente.
+}
+
+/**
+ * Obtiene el EngineId para un nombre de engine
+ * @param engineName - Nombre del engine
+ * @returns EngineId (Guid)
+ */
+export function getEngineId(engineName: DatabaseEngine): string {
+  const engineId = ENGINE_IDS[engineName]
+  if (!engineId) {
+    throw new Error(`Engine ${engineName} no tiene un EngineId configurado. Actualiza ENGINE_IDS en database.service.ts`)
+  }
+  return engineId
+}
+

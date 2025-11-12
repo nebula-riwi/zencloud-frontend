@@ -72,6 +72,7 @@ const router = createRouter({
 // Guard de autenticación
 router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore()
+  authStore.initializeAuth()
   
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     // Guardar la ruta de destino y redirigir al home (donde está el modal de login)
