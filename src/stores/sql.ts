@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { SqlResult, Database } from '@/types'
-// import apiClient from '@/services/api' // Backend will be implemented later
+import { sqlService } from '@/services/sql.service'
 
 interface QueryHistory {
   id: string
@@ -52,20 +52,10 @@ export const useSqlStore = defineStore('sql', () => {
     
     isRunning.value = true
     try {
-      // Mock - Backend will be implemented later
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // Ejecutar query en el backend
+      const result = await sqlService.executeQuery(db.id, query)
       
-      // Mock result
-      const mockResult: SqlResult = {
-        success: true,
-        data: [
-          { id: 1, name: 'Mock Row 1', value: 'Value 1' },
-          { id: 2, name: 'Mock Row 2', value: 'Value 2' },
-        ],
-        executionTime: 0.05,
-        affectedRows: 2,
-      }
-      results.value = mockResult
+      results.value = result
 
       // Add to history
       const historyItem: QueryHistory = {
@@ -74,7 +64,7 @@ export const useSqlStore = defineStore('sql', () => {
         dbId: db.id,
         engine: db.engine,
         timestamp: Date.now(),
-        success: mockResult.success,
+        success: result.success,
       }
       history.value.unshift(historyItem)
       // Keep only last 50 queries
@@ -83,7 +73,18 @@ export const useSqlStore = defineStore('sql', () => {
       }
       saveHistory()
 
-      return mockResult
+      return result
+    } catch (error: any) {
+      console.error('Error running query:', error)
+      const errorResult: SqlResult = {
+        success: false,
+        error: error.message || 'Error al ejecutar query',
+        errorMessage: error.message || 'Error al ejecutar query',
+        executionTime: 0,
+        affectedRows: 0,
+      }
+      results.value = errorResult
+      return errorResult
     } finally {
       isRunning.value = false
     }
@@ -129,19 +130,15 @@ export const useSqlStore = defineStore('sql', () => {
     
     loadingTables.value = true
     try {
-      // Mock - Backend will be implemented later
-      await new Promise(resolve => setTimeout(resolve, 300))
-      
-      // Mock tables based on engine
-      const mockTables: DatabaseTable[] = [
-        { name: 'users', type: 'table', rowCount: 1250 },
-        { name: 'products', type: 'table', rowCount: 340 },
-        { name: 'orders', type: 'table', rowCount: 890 },
-        { name: 'categories', type: 'table', rowCount: 15 },
-      ]
-      
-      tables.value = mockTables
-      return mockTables
+      // Obtener tablas del backend
+      const fetchedTables = await sqlService.getTables(db.id)
+      tables.value = fetchedTables
+      return fetchedTables
+    } catch (error: any) {
+      console.error('Error fetching tables:', error)
+      // En caso de error, retornar array vacío
+      tables.value = []
+      return []
     } finally {
       loadingTables.value = false
     }

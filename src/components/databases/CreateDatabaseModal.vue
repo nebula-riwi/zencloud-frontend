@@ -44,12 +44,12 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
                   </svg>
                 </div>
-                <select
+                <Select
                   id="engine"
                   v-model="formData.engine"
                   required
                   :disabled="loading || !!preselectedEngine"
-                  class="w-full pl-12 pr-10 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:border-white/20 hover:bg-black/50 focus:scale-[1.02] focus:shadow-lg focus:shadow-[#e78a53]/20"
+                  class="!pl-12 !pr-12 !py-3.5 uppercase tracking-[0.14em] text-[11px] font-semibold"
                 >
                   <option value="" disabled>Selecciona un motor</option>
                   <option value="mysql">MySQL</option>
@@ -58,7 +58,7 @@
                   <option value="sqlserver">SQL Server</option>
                   <option value="redis">Redis</option>
                   <option value="cassandra">Cassandra</option>
-                </select>
+                </Select>
               </div>
             </div>
 
@@ -124,6 +124,7 @@ import { ref, reactive, watch } from 'vue'
 import { useDatabaseStore } from '@/stores/database'
 import { useToastStore } from '@/stores/toast'
 import Dialog from '@/components/ui/Dialog.vue'
+import Select from '@/components/ui/Select.vue'
 import type { DatabaseEngine } from '@/types'
 
 const props = defineProps<{

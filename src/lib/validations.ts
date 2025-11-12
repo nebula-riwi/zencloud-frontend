@@ -22,7 +22,7 @@ export type LoginFormData = z.infer<typeof loginSchema>
 
 // Schema para Register
 export const registerSchema = z.object({
-  name: z
+  fullName: z
     .string({ message: requiredError })
     .min(1, requiredError)
     .min(2, minLengthError(2))
@@ -36,9 +36,15 @@ export const registerSchema = z.object({
     .min(1, requiredError)
     .min(8, 'La contraseña debe tener al menos 8 caracteres')
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      'La contraseña debe contener al menos una mayúscula, una minúscula y un número'
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d])/,
+      'La contraseña debe contener al menos una letra minúscula, una letra mayúscula, un número y un carácter especial'
     ),
+  confirmPassword: z
+    .string({ message: requiredError })
+    .min(1, requiredError),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'La contraseña y la confirmación de la contraseña no coinciden',
+  path: ['confirmPassword'],
 })
 
 export type RegisterFormData = z.infer<typeof registerSchema>

@@ -2,7 +2,7 @@
   <select
     :value="modelValue"
     :class="cn(
-      'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none',
+      'w-full appearance-none rounded-xl border border-white/10 bg-black/40 px-4 py-3.5 text-sm font-medium text-white tracking-wide transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 hover:border-white/20 hover:bg-black/50 disabled:cursor-not-allowed disabled:opacity-50 shadow-[0_12px_24px_-18px_rgba(231,138,83,0.45)]',
       attrs.class as string
     )"
     @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"

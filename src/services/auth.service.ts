@@ -1,65 +1,113 @@
-// import apiClient from './api' // Backend will be implemented later
-import { useAuthStore } from '@/stores/auth'
-import type { LoginCredentials, RegisterData, AuthResponse } from '@/types'
+import apiClient from './api'
+import { getUserFromToken } from '@/utils/jwt'
+import type { LoginCredentials, RegisterData, AuthResponse, LoginResponse, RegisterResponse } from '@/types'
 
 export const authService = {
+  /**
+   * Inicia sesión en el backend
+   * @param credentials - Credenciales de inicio de sesión
+   * @returns Respuesta de autenticación con token y usuario
+   */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    // TODO: Replace with actual API call when backend is ready
-    // const response = await apiClient.post<AuthResponse>('/auth/login', credentials)
-    // return response.data
-    
-    // Temporary: Use store login function which accepts any credentials
-    const authStore = useAuthStore()
-    return await authStore.login(credentials)
+    try {
+      // Llamar al endpoint de login del backend
+      const response = await apiClient.post<LoginResponse>('/Auth/login', credentials)
+      
+      const token = response.data.Token || response.data.token
+      if (!token) {
+        throw new Error('El backend no retornó un token válido')
+      }
+      
+      // Decodificar el token JWT para obtener información del usuario
+      const user = getUserFromToken(token)
+      if (!user) {
+        throw new Error('No se pudo obtener la información del usuario del token')
+      }
+
+      return {
+        token,
+        user,
+      }
+    } catch (error: any) {
+      // Manejar errores del backend
+      const errorMessage = error.response?.data?.message || error.message || 'Error al iniciar sesión'
+      throw new Error(errorMessage)
+    }
   },
 
-  async register(data: RegisterData): Promise<AuthResponse> {
-    // TODO: Replace with actual API call when backend is ready
-    // const response = await apiClient.post<AuthResponse>('/auth/register', data)
-    // return response.data
-    
-    // Temporary: Use store register function which accepts any credentials
-    const authStore = useAuthStore()
-    return await authStore.register(data)
+  /**
+   * Registra un nuevo usuario
+   * @param data - Datos de registro
+   * @returns Mensaje de éxito (el backend no retorna token en registro, necesita verificación de email)
+   */
+  async register(data: RegisterData): Promise<RegisterResponse> {
+    try {
+      // Llamar al endpoint de registro del backend
+      const response = await apiClient.post<RegisterResponse>('/Auth/register', {
+        email: data.email,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+        fullName: data.fullName,
+      })
+      
+      return response.data
+    } catch (error: any) {
+      // Manejar errores del backend
+      const errorMessage = error.response?.data?.message || error.message || 'Error al registrar usuario'
+      throw new Error(errorMessage)
+    }
   },
 
+  /**
+   * Cierra sesión (solo limpia el token local, el backend no tiene endpoint de logout)
+   */
   async logout(): Promise<void> {
-    // TODO: Replace with actual API call when backend is ready
-    // await apiClient.post('/auth/logout')
-    
-    // Temporary: Just clear local auth
-    const authStore = useAuthStore()
-    authStore.clearAuth()
+    // El backend no tiene endpoint de logout, solo limpiamos el token local
+    // Esto se maneja en el store de auth
   },
 
-  async refreshToken(_refreshToken: string): Promise<AuthResponse> {
-    // TODO: Replace with actual API call when backend is ready
-    // const response = await apiClient.post<AuthResponse>('/auth/refresh', { refreshToken })
-    // return response.data
-    
-    // Temporary: Use store refresh function
-    const authStore = useAuthStore()
-    return await authStore.refresh()
-  },
-
+  /**
+   * Verifica el token (intenta hacer una petición autenticada)
+   * @returns true si el token es válido, false si no
+   */
   async verifyToken(): Promise<{ valid: boolean }> {
-    // TODO: Replace with actual API call when backend is ready
-    // const response = await apiClient.get<{ valid: boolean }>('/auth/verify')
-    // return response.data
-    
-    // Temporary: Check if user is authenticated
-    const authStore = useAuthStore()
-    return { valid: authStore.isAuthenticated }
+    try {
+      // Intentar obtener las bases de datos del usuario como verificación
+      // Si el token es válido, la petición tendrá éxito
+      // Si no, el interceptor manejará el 401
+      const token = sessionStorage.getItem('auth_token')
+      if (!token) {
+        return { valid: false }
+      }
+
+      // Verificar que el token no esté expirado
+      const { isTokenExpired } = await import('@/utils/jwt')
+      if (isTokenExpired(token)) {
+        return { valid: false }
+      }
+
+      return { valid: true }
+    } catch (error) {
+      return { valid: false }
+    }
   },
 
+  /**
+   * Obtiene el usuario actual desde el token JWT
+   * @returns Información del usuario
+   */
   async getCurrentUser(): Promise<AuthResponse['user']> {
-    // TODO: Replace with actual API call when backend is ready
-    // const response = await apiClient.get<AuthResponse['user']>('/auth/me')
-    // return response.data
-    
-    // Temporary: Use store fetchMe function
-    const authStore = useAuthStore()
-    return await authStore.fetchMe()
+    const token = sessionStorage.getItem('auth_token')
+    if (!token) {
+      throw new Error('No hay token de autenticación')
+    }
+
+    const user = getUserFromToken(token)
+    if (!user) {
+      throw new Error('No se pudo obtener la información del usuario del token')
+    }
+
+    return user
   },
 }
 
