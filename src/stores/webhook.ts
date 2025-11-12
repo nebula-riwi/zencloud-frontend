@@ -1,31 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Webhook, WebhookEventType, WebhookTestResult } from '@/types'
-
-const STORAGE_KEY = 'zencloud_webhooks'
-
-function loadPersistedWebhooks(): Webhook[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw) as Webhook[]
-    if (!Array.isArray(parsed)) return []
-    return parsed
-  } catch (error) {
-    console.error('Error leyendo webhooks almacenados:', error)
-    return []
-  }
-}
-
-function persistWebhooks(webhooks: Webhook[]) {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(webhooks))
-  } catch (error) {
-    console.error('Error guardando webhooks:', error)
-  }
-}
+import { webhookService } from '@/services/webhook.service'
 
 export const useWebhookStore = defineStore('webhook', () => {
   const webhooks = ref<Webhook[]>([])
@@ -34,9 +10,13 @@ export const useWebhookStore = defineStore('webhook', () => {
   async function fetchWebhooks(): Promise<Webhook[]> {
     loading.value = true
     try {
-      const stored = loadPersistedWebhooks()
-      webhooks.value = stored
-      return stored
+      const data = await webhookService.fetchWebhooks()
+      webhooks.value = data
+      return data
+    } catch (error) {
+      console.error('Error fetching webhooks:', error)
+      webhooks.value = []
+      return []
     } finally {
       loading.value = false
     }
@@ -48,54 +28,47 @@ export const useWebhookStore = defineStore('webhook', () => {
     eventType: WebhookEventType
     active: boolean
   }): Promise<Webhook> {
-    const mockWebhook: Webhook = {
-      id: `mock-${Date.now()}`,
+    const webhook = await webhookService.createWebhook(data)
+    await fetchWebhooks()
+    return webhook
+  }
+
+  async function updateWebhook(id: string, data: Partial<Webhook>): Promise<Webhook> {
+    const webhook = await webhookService.updateWebhook(id, {
       name: data.name,
       url: data.url,
       eventType: data.eventType,
       active: data.active,
-      createdAt: new Date().toISOString(),
-    }
-    webhooks.value.push(mockWebhook)
-    persistWebhooks(webhooks.value)
-    return mockWebhook
-  }
-
-  async function updateWebhook(id: string, data: Partial<Webhook>): Promise<Webhook> {
-    const index = webhooks.value.findIndex((w) => w.id === id)
-    if (index !== -1) {
-      webhooks.value[index] = {
-        ...webhooks.value[index],
-        ...data,
-        updatedAt: new Date().toISOString(),
-      }
-      persistWebhooks(webhooks.value)
-      return webhooks.value[index]
-    }
-    throw new Error('Webhook not found')
+    })
+    await fetchWebhooks()
+    return webhook
   }
 
   async function toggleWebhook(id: string): Promise<Webhook> {
-    const index = webhooks.value.findIndex((w) => w.id === id)
-    if (index !== -1) {
-      webhooks.value[index].active = !webhooks.value[index].active
-      webhooks.value[index].updatedAt = new Date().toISOString()
-      persistWebhooks(webhooks.value)
-      return webhooks.value[index]
-    }
-    throw new Error('Webhook not found')
+    const webhook = await webhookService.toggleWebhook(id)
+    await fetchWebhooks()
+    return webhook
   }
 
   async function deleteWebhook(id: string): Promise<void> {
-    webhooks.value = webhooks.value.filter((w) => w.id !== id)
-    persistWebhooks(webhooks.value)
+    await webhookService.deleteWebhook(id)
+    await fetchWebhooks()
   }
 
-  async function testWebhook(_id: string): Promise<WebhookTestResult> {
-    return {
-      success: true,
-      message: 'Webhook test successful (mock)',
-      statusCode: 200,
+  async function testWebhook(id: string): Promise<WebhookTestResult> {
+    try {
+      await webhookService.testWebhook(id)
+      return {
+        success: true,
+        message: 'Webhook test enviado exitosamente',
+        statusCode: 200,
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Error al probar webhook',
+        statusCode: error.response?.status || 500,
+      }
     }
   }
 

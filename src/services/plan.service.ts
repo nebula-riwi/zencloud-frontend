@@ -82,7 +82,7 @@ async function fetchPlans(): Promise<PlanWithMetadata[]> {
 }
 
 async function createSubscription(planId: number): Promise<CreateSubscriptionResponse> {
-  const token = sessionStorage.getItem('auth_token')
+  const token = sessionStorage.getItem('Token')
   if (!token) {
     throw new Error('Usuario no autenticado')
   }
