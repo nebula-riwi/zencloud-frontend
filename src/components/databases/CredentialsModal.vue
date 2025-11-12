@@ -19,29 +19,69 @@
         
         <!-- Content -->
         <div class="relative z-10 p-8 md:p-10">
-          <DialogHeader>
-            <DialogTitle>Credenciales de Base de Datos</DialogTitle>
-            <DialogDescription>
+          <!-- Header -->
+          <div class="flex flex-col items-center mb-8">
+            <h2 class="text-2xl font-bold text-white mb-2">Credenciales de Base de Datos</h2>
+            <p class="text-white/60 text-sm text-center">
               {{ isFirstView ? 'Guarda estas credenciales de forma segura. Solo se mostrarán una vez.' : 'Credenciales de acceso' }}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogContent class="max-w-2xl">
-      <Loading v-if="loading" text="Cargando credenciales..." />
-      
-      <div v-else-if="credentials" class="space-y-4">
-        <div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+            </p>
+          </div>
+
+          <Loading v-if="loading" text="Cargando credenciales..." />
+          
+          <div v-else-if="credentials" class="space-y-4">
+            <div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-white/90">Host</label>
+                <div class="flex items-center gap-2">
+                  <Input 
+                    :value="credentials.host" 
+                    readonly 
+                    class="font-mono text-sm flex-1" 
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    @click="copyToClipboard(credentials.host)"
+                    class="shrink-0"
+                  >
+                    <Copy class="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-white/90">Puerto</label>
+                <div class="flex items-center gap-2">
+                  <Input 
+                    :value="credentials.port.toString()" 
+                    readonly 
+                    class="font-mono text-sm flex-1" 
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    @click="copyToClipboard(credentials.port.toString())"
+                    class="shrink-0"
+                  >
+                    <Copy class="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          
           <div class="space-y-2">
-            <label class="text-sm font-medium text-white/90">Host</label>
+            <label class="text-sm font-medium text-white/90">Usuario</label>
             <div class="flex items-center gap-2">
               <Input 
-                :value="credentials.host" 
+                :value="credentials.username" 
                 readonly 
                 class="font-mono text-sm flex-1" 
               />
               <Button 
                 variant="outline" 
                 size="sm" 
-                @click="copyToClipboard(credentials.host)"
+                @click="copyToClipboard(credentials.username)"
                 class="shrink-0"
               >
                 <Copy class="h-4 w-4" />
@@ -50,103 +90,64 @@
           </div>
           
           <div class="space-y-2">
-            <label class="text-sm font-medium text-white/90">Puerto</label>
+            <label class="text-sm font-medium text-white/90">Contraseña</label>
             <div class="flex items-center gap-2">
-              <Input 
-                :value="credentials.port.toString()" 
-                readonly 
-                class="font-mono text-sm flex-1" 
+              <Input
+                :type="showPassword ? 'text' : 'password'"
+                :value="credentials.password"
+                readonly
+                class="font-mono text-sm flex-1"
               />
               <Button 
                 variant="outline" 
                 size="sm" 
-                @click="copyToClipboard(credentials.port.toString())"
+                @click="showPassword = !showPassword"
+                class="shrink-0"
+              >
+                <Eye v-if="!showPassword" class="h-4 w-4" />
+                <EyeOff v-else class="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                @click="copyToClipboard(credentials.password)"
                 class="shrink-0"
               >
                 <Copy class="h-4 w-4" />
               </Button>
             </div>
           </div>
-        </div>
-        
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-white/90">Usuario</label>
-          <div class="flex items-center gap-2">
-            <Input 
-              :value="credentials.username" 
-              readonly 
-              class="font-mono text-sm flex-1" 
-            />
+          
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-white/90">Base de Datos</label>
+            <div class="flex items-center gap-2">
+              <Input 
+                :value="credentials.database" 
+                readonly 
+                class="font-mono text-sm flex-1" 
+              />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                @click="copyToClipboard(credentials.database)"
+                class="shrink-0"
+              >
+                <Copy class="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          
+          <div class="flex gap-2 pt-4">
             <Button 
               variant="outline" 
-              size="sm" 
-              @click="copyToClipboard(credentials.username)"
-              class="shrink-0"
+              @click="handleRotate" 
+              :loading="rotating"
+              class="w-full sm:w-auto"
             >
-              <Copy class="h-4 w-4" />
+              Rotar Credenciales
             </Button>
           </div>
-        </div>
-        
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-white/90">Contraseña</label>
-          <div class="flex items-center gap-2">
-            <Input
-              :type="showPassword ? 'text' : 'password'"
-              :value="credentials.password"
-              readonly
-              class="font-mono text-sm flex-1"
-            />
-            <Button 
-              variant="outline" 
-              size="sm" 
-              @click="showPassword = !showPassword"
-              class="shrink-0"
-            >
-              <Eye v-if="!showPassword" class="h-4 w-4" />
-              <EyeOff v-else class="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              @click="copyToClipboard(credentials.password)"
-              class="shrink-0"
-            >
-              <Copy class="h-4 w-4" />
-            </Button>
           </div>
-        </div>
-        
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-white/90">Base de Datos</label>
-          <div class="flex items-center gap-2">
-            <Input 
-              :value="credentials.database" 
-              readonly 
-              class="font-mono text-sm flex-1" 
-            />
-            <Button 
-              variant="outline" 
-              size="sm" 
-              @click="copyToClipboard(credentials.database)"
-              class="shrink-0"
-            >
-              <Copy class="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        
-        <div class="flex gap-2 pt-4">
-          <Button 
-            variant="outline" 
-            @click="handleRotate" 
-            :loading="rotating"
-            class="w-full sm:w-auto"
-          >
-            Rotar Credenciales
-          </Button>
-        </div>
-          </DialogContent>
         </div>
       </div>
     </div>
@@ -158,10 +159,6 @@ import { ref, watch } from 'vue'
 import { useDatabaseStore } from '@/stores/database'
 import { useToastStore } from '@/stores/toast'
 import Dialog from '@/components/ui/Dialog.vue'
-import DialogHeader from '@/components/ui/DialogHeader.vue'
-import DialogTitle from '@/components/ui/DialogTitle.vue'
-import DialogDescription from '@/components/ui/DialogDescription.vue'
-import DialogContent from '@/components/ui/DialogContent.vue'
 import Input from '@/components/ui/Input.vue'
 import Button from '@/components/ui/Button.vue'
 import Loading from '@/components/ui/Loading.vue'
