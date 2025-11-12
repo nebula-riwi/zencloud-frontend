@@ -33,7 +33,7 @@ const API_URL =
   import.meta.env.VITE_API_BASE_URL ||
   (shouldUseLocalApi ? DEFAULT_LOCAL_API : DEFAULT_REMOTE_API)
 
-const TIMEOUT = 30000 // 30 segundos
+const TIMEOUT = 60000 // 60 segundos (aumentado para operaciones de creación de BD)
 
 // Crear instancia de Axios
 const apiClient: AxiosInstance = axios.create({

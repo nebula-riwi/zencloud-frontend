@@ -27,8 +27,8 @@ export const useDatabaseStore = defineStore('database', () => {
       // Obtener el EngineId del engine seleccionado
       const engineId = getEngineId(data.engine)
       
-      // Crear la base de datos en el backend
-      const newDatabase = await databaseService.createDatabase(engineId)
+      // Crear la base de datos en el backend con el nombre proporcionado
+      const newDatabase = await databaseService.createDatabase(engineId, data.name || undefined)
       
       // Agregar a la lista local
       databases.value.push(newDatabase)
