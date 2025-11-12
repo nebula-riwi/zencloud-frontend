@@ -9,6 +9,10 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # Configurar Node.js para más memoria
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
+# Variables de entorno para el build (valores por defecto)
+ENV VITE_API_BASE_URL="https://service.nebula.andrescortes.dev"
+ENV VITE_USE_LOCAL_API="false"
+
 # Copiar archivos de dependencias
 COPY package.json ./
 COPY pnpm-lock.yaml* ./
