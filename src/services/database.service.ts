@@ -57,9 +57,10 @@ export const databaseService = {
   /**
    * Crea una nueva base de datos
    * @param engineId - ID del motor de base de datos (Guid)
+   * @param databaseName - Nombre opcional para la base de datos
    * @returns Base de datos creada
    */
-  async createDatabase(engineId: string): Promise<Database> {
+  async createDatabase(engineId: string, databaseName?: string): Promise<Database> {
     try {
       const token = sessionStorage.getItem('Token')
       if (!token) {
@@ -74,6 +75,7 @@ export const databaseService = {
       const request: CreateDatabaseRequestDto = {
         userId,
         engineId,
+        databaseName: databaseName || undefined,
       }
 
       const response = await apiClient.post<{ message: string; data: DatabaseInstanceResponse }>(

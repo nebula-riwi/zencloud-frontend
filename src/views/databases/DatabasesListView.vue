@@ -116,17 +116,17 @@
                   <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/0 to-[#e78a53]/0 group-hover:from-[#e78a53]/5 group-hover:to-transparent transition-all duration-500 pointer-events-none"></div>
                   
                   <CardHeader class="relative z-10 border-b border-white/10 pb-4">
-                    <div class="flex items-start justify-between">
-                      <div class="flex-1">
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2 mb-2">
-                          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#e78a53]/20 to-[#e78a53]/10 flex items-center justify-center border border-[#e78a53]/30">
+                          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#e78a53]/20 to-[#e78a53]/10 flex items-center justify-center border border-[#e78a53]/30 shrink-0">
                             <Database class="h-4 w-4 text-[#e78a53]" />
                           </div>
-                          <CardTitle class="text-xl text-white">{{ db.name }}</CardTitle>
+                          <CardTitle class="text-xl text-white truncate">{{ db.name }}</CardTitle>
                         </div>
                         <CardDescription class="text-white/60 font-medium">{{ db.engine }}</CardDescription>
                       </div>
-                      <Badge :variant="getStatusVariant(db.status)" class="ml-2">
+                      <Badge :variant="getStatusVariant(db.status)" class="shrink-0 text-xs px-2 py-1 whitespace-nowrap">
                         {{ db.status }}
                       </Badge>
                     </div>

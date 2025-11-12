@@ -79,6 +79,7 @@ export interface DatabaseInstanceResponse {
 export interface CreateDatabaseRequestDto {
   userId: string // Guid como string
   engineId: string // Guid como string
+  databaseName?: string // Nombre opcional para la base de datos
 }
 
 export type DatabaseEngine = 'mysql' | 'postgresql' | 'mongodb' | 'sqlserver' | 'redis' | 'cassandra'

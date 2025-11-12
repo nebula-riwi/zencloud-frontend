@@ -58,10 +58,10 @@ export const useWebhookStore = defineStore('webhook', () => {
   async function testWebhook(id: string): Promise<WebhookTestResult> {
     try {
       await webhookService.testWebhook(id)
-      return {
-        success: true,
+    return {
+      success: true,
         message: 'Webhook test enviado exitosamente',
-        statusCode: 200,
+      statusCode: 200,
       }
     } catch (error: any) {
       return {

@@ -1,71 +1,155 @@
 <template>
   <Dialog :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)">
-    <DialogHeader>
-      <DialogTitle>Credenciales de Base de Datos</DialogTitle>
-      <DialogDescription>
-        {{ isFirstView ? 'Guarda estas credenciales de forma segura. Solo se mostrarán una vez.' : 'Credenciales de acceso' }}
-      </DialogDescription>
-    </DialogHeader>
-    <DialogContent>
+    <div class="relative w-full max-w-2xl mx-auto">
+      <!-- Main Modal Container -->
+      <div class="bg-gradient-to-br from-black/98 via-black/95 to-black/98 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden relative">
+        <!-- Close Button -->
+        <button
+          @click="$emit('update:modelValue', false)"
+          class="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/70 hover:text-white transition-all duration-300 focus:outline-none hover:scale-110 active:scale-95 hover:rotate-90"
+          aria-label="Cerrar modal"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <!-- Decorative gradient overlay -->
+        <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/5 via-transparent to-transparent pointer-events-none"></div>
+        
+        <!-- Content -->
+        <div class="relative z-10 p-8 md:p-10">
+          <DialogHeader>
+            <DialogTitle>Credenciales de Base de Datos</DialogTitle>
+            <DialogDescription>
+              {{ isFirstView ? 'Guarda estas credenciales de forma segura. Solo se mostrarán una vez.' : 'Credenciales de acceso' }}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogContent class="max-w-2xl">
       <Loading v-if="loading" text="Cargando credenciales..." />
       
       <div v-else-if="credentials" class="space-y-4">
+        <div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-white/90">Host</label>
+            <div class="flex items-center gap-2">
+              <Input 
+                :value="credentials.host" 
+                readonly 
+                class="font-mono text-sm flex-1" 
+              />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                @click="copyToClipboard(credentials.host)"
+                class="shrink-0"
+              >
+                <Copy class="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-white/90">Puerto</label>
+            <div class="flex items-center gap-2">
+              <Input 
+                :value="credentials.port.toString()" 
+                readonly 
+                class="font-mono text-sm flex-1" 
+              />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                @click="copyToClipboard(credentials.port.toString())"
+                class="shrink-0"
+              >
+                <Copy class="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+        
         <div class="space-y-2">
-          <label class="text-sm font-medium">Host</label>
+          <label class="text-sm font-medium text-white/90">Usuario</label>
           <div class="flex items-center gap-2">
-            <Input :value="showPassword ? credentials.host : '••••••••'" readonly class="font-mono" />
-            <Button variant="outline" size="sm" @click="copyToClipboard(credentials.host)">
+            <Input 
+              :value="credentials.username" 
+              readonly 
+              class="font-mono text-sm flex-1" 
+            />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              @click="copyToClipboard(credentials.username)"
+              class="shrink-0"
+            >
               <Copy class="h-4 w-4" />
             </Button>
           </div>
         </div>
         
         <div class="space-y-2">
-          <label class="text-sm font-medium">Puerto</label>
-          <Input :value="credentials.port.toString()" readonly class="font-mono" />
-        </div>
-        
-        <div class="space-y-2">
-          <label class="text-sm font-medium">Usuario</label>
-          <div class="flex items-center gap-2">
-            <Input :value="showPassword ? credentials.username : '••••••••'" readonly class="font-mono" />
-            <Button variant="outline" size="sm" @click="copyToClipboard(credentials.username)">
-              <Copy class="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        
-        <div class="space-y-2">
-          <label class="text-sm font-medium">Contraseña</label>
+          <label class="text-sm font-medium text-white/90">Contraseña</label>
           <div class="flex items-center gap-2">
             <Input
               :type="showPassword ? 'text' : 'password'"
               :value="credentials.password"
               readonly
-              class="font-mono"
+              class="font-mono text-sm flex-1"
             />
-            <Button variant="outline" size="sm" @click="showPassword = !showPassword">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              @click="showPassword = !showPassword"
+              class="shrink-0"
+            >
               <Eye v-if="!showPassword" class="h-4 w-4" />
               <EyeOff v-else class="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="sm" @click="copyToClipboard(credentials.password)">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              @click="copyToClipboard(credentials.password)"
+              class="shrink-0"
+            >
               <Copy class="h-4 w-4" />
             </Button>
           </div>
         </div>
         
         <div class="space-y-2">
-          <label class="text-sm font-medium">Base de Datos</label>
-          <Input :value="credentials.database" readonly class="font-mono" />
+          <label class="text-sm font-medium text-white/90">Base de Datos</label>
+          <div class="flex items-center gap-2">
+            <Input 
+              :value="credentials.database" 
+              readonly 
+              class="font-mono text-sm flex-1" 
+            />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              @click="copyToClipboard(credentials.database)"
+              class="shrink-0"
+            >
+              <Copy class="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         
         <div class="flex gap-2 pt-4">
-          <Button variant="outline" @click="handleRotate" :loading="rotating">
+          <Button 
+            variant="outline" 
+            @click="handleRotate" 
+            :loading="rotating"
+            class="w-full sm:w-auto"
+          >
             Rotar Credenciales
           </Button>
         </div>
+          </DialogContent>
+        </div>
       </div>
-    </DialogContent>
+    </div>
   </Dialog>
 </template>
 
