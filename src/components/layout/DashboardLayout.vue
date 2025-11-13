@@ -18,6 +18,8 @@
         <slot />
       </main>
     </div>
+    <!-- ChatWidget solo en el dashboard -->
+    <ChatWidget />
   </div>
 </template>
 
@@ -25,6 +27,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import DashboardSidebar from './DashboardSidebar.vue'
 import DashboardTopNav from './DashboardTopNav.vue'
+import ChatWidget from '@/components/common/ChatWidget.vue'
 
 // Initialize menu state from localStorage immediately (before mount)
 // This ensures the state is correct even before Vue mounts

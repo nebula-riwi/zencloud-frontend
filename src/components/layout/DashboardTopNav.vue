@@ -58,8 +58,8 @@
             >
             <!-- User info at the top -->
             <div class="p-3 border-b border-white/10">
-              <div class="px-2 py-1.5 text-sm font-semibold text-white">{{ user?.name || 'Usuario' }}</div>
-              <div class="px-2 py-0.5 text-xs text-white/60">{{ user?.email || '' }}</div>
+              <div class="px-2 py-1.5 text-sm font-semibold text-white truncate">{{ user?.name || 'Usuario' }}</div>
+              <div class="px-2 py-0.5 text-xs text-white/60 truncate break-all" :title="user?.email || ''">{{ user?.email || '' }}</div>
             </div>
             <!-- Logout button at the bottom -->
             <div class="p-1">

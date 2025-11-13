@@ -44,6 +44,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/sql/SqlEditorView.vue'),
     meta: { requiresAuth: true },
   },
+  {
+    path: '/promo',
+    name: 'Promo',
+    component: () => import('@/views/PromoView.vue'),
+  },
 ]
 
 const router = createRouter({
