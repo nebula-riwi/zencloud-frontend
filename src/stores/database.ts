@@ -57,7 +57,9 @@ export const useDatabaseStore = defineStore('database', () => {
       // Obtener la base de datos directamente del backend
       const response = await databaseService.getDatabaseById(_id)
       
-      // Usar los datos directamente del backend
+      console.log('Response completo del backend:', response)
+      
+      // Usar los datos directamente del backend con valores por defecto
       let host = response.host || '168.119.182.243' // IP por defecto del servidor
       let port = response.port || 3306
       let username = response.username || ''
@@ -65,6 +67,7 @@ export const useDatabaseStore = defineStore('database', () => {
       
       // Intentar parsear la connection string para obtener más información
       if (response.connectionString) {
+        console.log('Parseando connection string:', response.connectionString)
         const connParts = response.connectionString.split(';')
         connParts.forEach((part) => {
           const trimmedPart = part.trim()
@@ -75,6 +78,8 @@ export const useDatabaseStore = defineStore('database', () => {
           
           const key = trimmedPart.substring(0, equalIndex).trim().toLowerCase()
           const value = trimmedPart.substring(equalIndex + 1).trim()
+          
+          console.log(`Parsing: ${key} = ${value}`)
           
           if ((key === 'server' || key === 'host') && value) {
             host = value
@@ -92,43 +97,51 @@ export const useDatabaseStore = defineStore('database', () => {
         })
       }
       
-      // Fallback: usar los datos del response si no se encontraron en la connection string
-      if (!host || host === '168.119.182.243') {
+      // Asegurar que siempre tengamos valores válidos
+      // Si después de parsear aún no tenemos valores, usar los del response
+      if (!host || host.trim() === '' || host === '168.119.182.243') {
         host = response.host || '168.119.182.243'
       }
-      if (!port || port === 3306) {
+      if (!port || port === 0) {
         port = response.port || 3306
       }
-      if (!username) {
+      if (!username || username.trim() === '') {
         username = response.username || ''
       }
-      if (!databaseName) {
+      if (!databaseName || databaseName.trim() === '') {
         databaseName = response.name || ''
       }
       
-      console.log('Credenciales obtenidas:', { 
-        host, 
-        port, 
-        username, 
-        databaseName,
-        connectionString: response.connectionString?.substring(0, 50) + '...',
-        responseHost: response.host,
-        responsePort: response.port,
-        responseUsername: response.username,
-        responseName: response.name
-      })
-      
-      return {
-        host: host,
-        port: port,
-        username: username,
-        password: '***La contraseña se envió por correo electrónico***', // El backend no expone la contraseña por seguridad
-        database: databaseName,
-        firstView: false,
-        connectionString: response.connectionString,
+      // Validar que tengamos valores mínimos
+      if (!host || host.trim() === '') {
+        host = '168.119.182.243'
       }
+      if (!port || port === 0) {
+        port = 3306
+      }
+      if (!username || username.trim() === '') {
+        username = 'N/A'
+      }
+      if (!databaseName || databaseName.trim() === '') {
+        databaseName = 'N/A'
+      }
+      
+      const credentials = {
+        host: host.trim(),
+        port: port,
+        username: username.trim(),
+        password: '***La contraseña se envió por correo electrónico***', // El backend no expone la contraseña por seguridad
+        database: databaseName.trim(),
+        firstView: false,
+        connectionString: response.connectionString || '',
+      }
+      
+      console.log('Credenciales finales:', credentials)
+      
+      return credentials
     } catch (error: any) {
       console.error('Error getting credentials:', error)
+      console.error('Error stack:', error.stack)
       throw error
     }
   }

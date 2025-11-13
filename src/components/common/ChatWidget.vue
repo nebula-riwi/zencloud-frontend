@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import '@n8n/chat/style.css'
@@ -13,6 +13,9 @@ const authStore = useAuthStore()
 const { token, user, isAuthenticated } = storeToRefs(authStore)
 
 let chatInstance: any = null
+let originalFetch: typeof fetch | null = null
+let originalXHROpen: typeof XMLHttpRequest.prototype.open | null = null
+let originalXHRSend: typeof XMLHttpRequest.prototype.send | null = null
 
 function initializeChat() {
   if (!isAuthenticated.value || !token.value || !user.value) {
@@ -24,6 +27,9 @@ function initializeChat() {
   }
 
   try {
+    // Interceptar peticiones HTTP antes de inicializar el chat
+    setupMessageInterceptor()
+    
     chatInstance = createChat({
       webhookUrl: 'https://n8n.nebula.andrescortes.dev/webhook/2d3a2185-7e66-4e25-904b-fa642d24bdf2/chat',
       metadata: {
@@ -38,10 +44,132 @@ function initializeChat() {
   }
 }
 
+function setupMessageInterceptor() {
+  // Guardar referencias originales
+  if (!originalFetch) {
+    originalFetch = window.fetch
+  }
+  if (!originalXHROpen) {
+    originalXHROpen = XMLHttpRequest.prototype.open
+  }
+  if (!originalXHRSend) {
+    originalXHRSend = XMLHttpRequest.prototype.send
+  }
+  
+  // Interceptar fetch para agregar token en cada mensaje
+  window.fetch = async function(...args) {
+    const [url, options = {}] = args
+    
+    // Si es una petición al webhook del chat
+    if (typeof url === 'string' && url.includes('n8n.nebula.andrescortes.dev/webhook') && token.value) {
+      try {
+        // Si hay body, parsearlo y agregar/actualizar metadata
+        if (options.body) {
+          const body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body
+          if (body && typeof body === 'object') {
+            body.metadata = {
+              ...(body.metadata || {}),
+              token: token.value,
+              email: user.value?.email || '',
+              source: 'web_platform'
+            }
+            options.body = JSON.stringify(body)
+          }
+        } else {
+          // Si no hay body, crear uno con metadata
+          options.body = JSON.stringify({
+            metadata: {
+              token: token.value,
+              email: user.value?.email || '',
+              source: 'web_platform'
+            }
+          })
+          if (!options.headers) {
+            options.headers = {}
+          }
+          if (typeof options.headers === 'object' && !Array.isArray(options.headers)) {
+            options.headers['Content-Type'] = 'application/json'
+          }
+        }
+      } catch (e) {
+        console.error('ChatWidget: Error interceptando fetch:', e)
+      }
+    }
+    
+    return originalFetch!.apply(this, args)
+  }
+  
+  // Interceptar XMLHttpRequest también
+  XMLHttpRequest.prototype.open = function(method: string, url: string | URL, ...rest: any[]) {
+    ;(this as any)._url = url.toString()
+    return originalXHROpen!.apply(this, [method, url, ...rest])
+  }
+  
+  XMLHttpRequest.prototype.send = function(body?: Document | XMLHttpRequestInit | null) {
+    const url = (this as any)._url
+    if (url && url.includes('n8n.nebula.andrescortes.dev/webhook') && token.value) {
+      try {
+        if (body && typeof body === 'string') {
+          const parsedBody = JSON.parse(body)
+          if (parsedBody && typeof parsedBody === 'object') {
+            parsedBody.metadata = {
+              ...(parsedBody.metadata || {}),
+              token: token.value,
+              email: user.value?.email || '',
+              source: 'web_platform'
+            }
+            body = JSON.stringify(parsedBody)
+          }
+        } else if (!body) {
+          body = JSON.stringify({
+            metadata: {
+              token: token.value,
+              email: user.value?.email || '',
+              source: 'web_platform'
+            }
+          })
+          if (!this.getRequestHeader('Content-Type')) {
+            this.setRequestHeader('Content-Type', 'application/json')
+          }
+        }
+      } catch (e) {
+        console.error('ChatWidget: Error interceptando XMLHttpRequest:', e)
+      }
+    }
+    return originalXHRSend!.apply(this, [body])
+  }
+  
+  console.log('ChatWidget: Interceptor de mensajes configurado')
+}
+
+function cleanupInterceptor() {
+  // Restaurar funciones originales
+  if (originalFetch) {
+    window.fetch = originalFetch
+  }
+  if (originalXHROpen) {
+    XMLHttpRequest.prototype.open = originalXHROpen
+  }
+  if (originalXHRSend) {
+    XMLHttpRequest.prototype.send = originalXHRSend
+  }
+}
+
+// Observar cambios en el token para asegurar que siempre esté actualizado
+watch(token, (newToken) => {
+  if (newToken && chatInstance) {
+    console.log('ChatWidget: Token actualizado, se incluirá en próximos mensajes')
+  }
+})
+
 // Observar cambios en autenticación
 watch([isAuthenticated, token, user], ([authenticated, newToken, newUser]) => {
   if (authenticated && newToken && newUser && !chatInstance) {
     initializeChat()
+  } else if (!authenticated) {
+    // Limpiar instancia si se desautentica
+    chatInstance = null
+    cleanupInterceptor()
   }
 }, { immediate: false })
 
@@ -49,6 +177,10 @@ onMounted(() => {
   if (isAuthenticated.value && token.value && user.value) {
     initializeChat()
   }
+})
+
+onUnmounted(() => {
+  cleanupInterceptor()
 })
 </script>
 

@@ -185,10 +185,10 @@ export const databaseService = {
       engine: engineName,
       status: statusMap[db.status] || 'active',
       createdAt: db.createdAt,
-      host: host || db.serverIpAddress || undefined,
-      port: port || db.assignedPort,
-      username: username || db.databaseUser,
-      connectionString: db.connectionString,
+      host: host || db.serverIpAddress || '168.119.182.243',
+      port: port || db.assignedPort || 3306,
+      username: username || db.databaseUser || '',
+      connectionString: db.connectionString || '',
     }
   },
 }
