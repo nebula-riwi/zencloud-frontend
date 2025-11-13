@@ -246,6 +246,12 @@ onMounted(async () => {
 
   if (statusParam === 'approved') {
     toastStore.success('Plan actualizado', 'Tu plan ha sido actualizado correctamente')
+    // Actualizar el plan actual después de un pago exitoso
+    try {
+      await planStore.fetchPlan()
+    } catch (error) {
+      console.error('Error actualizando plan después del pago:', error)
+    }
   } else if (statusParam === 'failure' || statusParam === 'rejected') {
     toastStore.error('Pago rechazado', 'El pago fue rechazado o cancelado')
   }

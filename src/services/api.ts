@@ -108,8 +108,8 @@ apiClient.interceptors.response.use(
     
     if (status && status >= 500) {
       console.error('Server error:', status, errorMessage)
-      const toast = getToastStore()
-      toast?.error('Error del servidor', 'Ocurrió un problema interno. Inténtalo más tarde.')
+    const toast = getToastStore()
+    toast?.error('Error del servidor', 'Ocurrió un problema interno. Inténtalo más tarde.')
     } else if (status === 422) {
       // Errores de validación - mostrar el primer error o el mensaje general
       console.warn('Validation error:', status, errorData)

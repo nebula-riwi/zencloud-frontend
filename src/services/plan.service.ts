@@ -101,8 +101,36 @@ async function createSubscription(planId: number): Promise<CreateSubscriptionRes
   return response.data
 }
 
+async function fetchCurrentSubscription(): Promise<PlanWithMetadata | null> {
+  try {
+    const response = await apiClient.get<PlanResponse | { message?: string }>('/api/Payments/current-subscription')
+    
+    // Si la respuesta tiene un mensaje (no hay suscripción activa), devolver null
+    if ('message' in response.data && response.data.message) {
+      return null
+    }
+    
+    // Si hay datos de plan, mapearlos
+    if ('planId' in response.data) {
+      return mapPlanResponse(response.data as PlanResponse)
+    }
+    
+    return null
+  } catch (error: any) {
+    // Si el endpoint no existe (404) o no hay suscripción activa, devolver null
+    if (error.response?.status === 404) {
+      console.log('Endpoint de suscripción no disponible, usando plan por defecto')
+      return null
+    }
+    // Si hay otro error, registrarlo pero no fallar
+    console.error('Error obteniendo suscripción actual:', error)
+    return null
+  }
+}
+
 export const planService = {
   fetchPlans,
   createSubscription,
+  fetchCurrentSubscription,
 }
 

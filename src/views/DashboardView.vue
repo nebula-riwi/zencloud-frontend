@@ -157,12 +157,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { usePlanStore } from '@/stores/plan'
 import { useDatabaseStore } from '@/stores/database'
-import { useWebhookStore } from '@/stores/webhook'
+// import { useWebhookStore } from '@/stores/webhook' // Deshabilitado temporalmente
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import Card from '@/components/ui/Card.vue'
 import CardHeader from '@/components/ui/CardHeader.vue'
@@ -178,12 +178,13 @@ const router = useRouter()
 const authStore = useAuthStore()
 const planStore = usePlanStore()
 const databaseStore = useDatabaseStore()
-const webhookStore = useWebhookStore()
+// const webhookStore = useWebhookStore() // Deshabilitado temporalmente
 
 const { user } = storeToRefs(authStore)
 const { currentPlan } = storeToRefs(planStore)
 const { databases } = storeToRefs(databaseStore)
-const { webhooks } = storeToRefs(webhookStore)
+// const { webhooks } = storeToRefs(webhookStore) // Deshabilitado temporalmente
+const webhooks = ref([]) // Mock data
 
 const engines = [
   {
@@ -231,7 +232,7 @@ const engines = [
 ]
 
 const totalDatabases = computed(() => databases.value.length)
-const activeWebhooks = computed(() => webhooks.value.filter((w) => w.active).length)
+const activeWebhooks = computed(() => 0) // Webhooks deshabilitados temporalmente
 
 function goToDatabases(engine: DatabaseEngine) {
   router.push(`/databases?engine=${engine}`)
@@ -243,11 +244,30 @@ onMounted(async () => {
     await Promise.all([
       planStore.fetchPlan(),
       databaseStore.fetchDatabases(),
-      webhookStore.fetchWebhooks(),
+      // webhookStore.fetchWebhooks().catch(() => {
+      //   // Ignorar errores de webhooks (están deshabilitados temporalmente)
+      //   console.log('Webhooks deshabilitados temporalmente')
+      // }),
     ])
   } catch (error) {
     // Silently fail - using mock data
     console.log('Using mock data - backend not available yet')
+  }
+  
+  // Verificar si se regresó de un pago exitoso
+  const params = new URLSearchParams(window.location.search)
+  const statusParam = params.get('status') || params.get('collection_status')
+  
+  if (statusParam === 'approved') {
+    // Actualizar el plan después de un pago exitoso
+    try {
+      await planStore.fetchPlan()
+    } catch (error) {
+      console.error('Error actualizando plan después del pago:', error)
+    }
+    
+    // Limpiar la URL
+    window.history.replaceState(null, '', window.location.pathname)
   }
 })
 </script>
