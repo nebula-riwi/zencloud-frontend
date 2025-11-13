@@ -383,13 +383,13 @@ async function handleDelete() {
 }
 
 onMounted(async () => {
-  // Load mock data - Backend will be implemented later
-  try {
-    await webhookStore.fetchWebhooks()
-  } catch (error) {
-    // Silently fail - using mock data
-    console.log('Using mock data - backend not available yet')
-  }
+  // Webhooks deshabilitados temporalmente
+  // try {
+  //   await webhookStore.fetchWebhooks()
+  // } catch (error) {
+  //   console.log('Webhooks deshabilitados temporalmente')
+  // }
+  webhooks.value = [] // Mostrar lista vacía
 })
 </script>
 

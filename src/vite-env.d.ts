@@ -6,6 +6,13 @@ declare module '*.vue' {
   export default component
 }
 
+// Declarar n8n chat en window
+declare global {
+  interface Window {
+    n8nCreateChat?: any
+  }
+}
+
 interface ImportMetaEnv {
   readonly VITE_API_URL: string
 }

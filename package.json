@@ -12,6 +12,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@n8n/chat": "^0.65.0",
     "@vueuse/core": "^10.11.0",
     "axios": "^1.7.9",
     "clsx": "^2.1.1",

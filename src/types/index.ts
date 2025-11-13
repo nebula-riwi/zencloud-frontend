@@ -73,6 +73,7 @@ export interface DatabaseInstanceResponse {
   status: string
   engineName: string
   createdAt: string
+  serverIpAddress?: string
 }
 
 // Request para crear base de datos

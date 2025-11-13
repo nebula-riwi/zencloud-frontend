@@ -157,10 +157,25 @@ export const databaseService = {
       // Formato típico: "Server=host;Port=port;User=user;Password=password;Database=database"
       const connParts = db.connectionString.split(';')
       connParts.forEach((part) => {
-        const [key, value] = part.split('=')
-        if (key?.toLowerCase() === 'server') host = value
-        if (key?.toLowerCase() === 'port') port = parseInt(value || '0', 10)
-        if (key?.toLowerCase() === 'user') username = value
+        const trimmedPart = part.trim()
+        if (!trimmedPart) return
+        
+        const equalIndex = trimmedPart.indexOf('=')
+        if (equalIndex === -1) return
+        
+        const key = trimmedPart.substring(0, equalIndex).trim().toLowerCase()
+        const value = trimmedPart.substring(equalIndex + 1).trim()
+        
+        if (key === 'server' || key === 'host') {
+          host = value || host
+        }
+        if (key === 'port') {
+          const parsedPort = parseInt(value || '0', 10)
+          if (parsedPort > 0) port = parsedPort
+        }
+        if (key === 'user' || key === 'user id' || key === 'username') {
+          username = value || username
+        }
       })
     }
 
@@ -170,7 +185,7 @@ export const databaseService = {
       engine: engineName,
       status: statusMap[db.status] || 'active',
       createdAt: db.createdAt,
-      host: host || undefined,
+      host: host || db.serverIpAddress || undefined,
       port: port || db.assignedPort,
       username: username || db.databaseUser,
       connectionString: db.connectionString,

@@ -23,17 +23,17 @@
           <div class="flex flex-col items-center mb-8">
             <h2 class="text-2xl font-bold text-white mb-2">Credenciales de Base de Datos</h2>
             <p class="text-white/60 text-sm text-center">
-              {{ isFirstView ? 'Guarda estas credenciales de forma segura. Solo se mostrarán una vez.' : 'Credenciales de acceso' }}
+        {{ isFirstView ? 'Guarda estas credenciales de forma segura. Solo se mostrarán una vez.' : 'Credenciales de acceso' }}
             </p>
           </div>
 
-          <Loading v-if="loading" text="Cargando credenciales..." />
-          
-          <div v-else-if="credentials" class="space-y-4">
+      <Loading v-if="loading" text="Cargando credenciales..." />
+      
+      <div v-else-if="credentials" class="space-y-4">
             <div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
-              <div class="space-y-2">
+        <div class="space-y-2">
                 <label class="text-sm font-medium text-white/90">Host</label>
-                <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2">
                   <Input 
                     :value="credentials.host" 
                     readonly 
@@ -45,12 +45,12 @@
                     @click="copyToClipboard(credentials.host)"
                     class="shrink-0"
                   >
-                    <Copy class="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              <div class="space-y-2">
+              <Copy class="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <div class="space-y-2">
                 <label class="text-sm font-medium text-white/90">Puerto</label>
                 <div class="flex items-center gap-2">
                   <Input 
@@ -68,11 +68,11 @@
                   </Button>
                 </div>
               </div>
-            </div>
-          
-          <div class="space-y-2">
+        </div>
+        
+        <div class="space-y-2">
             <label class="text-sm font-medium text-white/90">Usuario</label>
-            <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2">
               <Input 
                 :value="credentials.username" 
                 readonly 
@@ -84,41 +84,41 @@
                 @click="copyToClipboard(credentials.username)"
                 class="shrink-0"
               >
-                <Copy class="h-4 w-4" />
-              </Button>
-            </div>
+              <Copy class="h-4 w-4" />
+            </Button>
           </div>
-          
-          <div class="space-y-2">
+        </div>
+        
+        <div class="space-y-2">
             <label class="text-sm font-medium text-white/90">Contraseña</label>
-            <div class="flex items-center gap-2">
-              <Input
-                :type="showPassword ? 'text' : 'password'"
-                :value="credentials.password"
-                readonly
+          <div class="flex items-center gap-2">
+            <Input
+              :type="showPassword ? 'text' : 'password'"
+              :value="credentials.password"
+              readonly
                 class="font-mono text-sm flex-1"
-              />
+            />
               <Button 
                 variant="outline" 
                 size="sm" 
                 @click="showPassword = !showPassword"
                 class="shrink-0"
               >
-                <Eye v-if="!showPassword" class="h-4 w-4" />
-                <EyeOff v-else class="h-4 w-4" />
-              </Button>
+              <Eye v-if="!showPassword" class="h-4 w-4" />
+              <EyeOff v-else class="h-4 w-4" />
+            </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
                 @click="copyToClipboard(credentials.password)"
                 class="shrink-0"
               >
-                <Copy class="h-4 w-4" />
-              </Button>
-            </div>
+              <Copy class="h-4 w-4" />
+            </Button>
           </div>
-          
-          <div class="space-y-2">
+        </div>
+        
+        <div class="space-y-2">
             <label class="text-sm font-medium text-white/90">Base de Datos</label>
             <div class="flex items-center gap-2">
               <Input 
@@ -135,17 +135,17 @@
                 <Copy class="h-4 w-4" />
               </Button>
             </div>
-          </div>
-          
-          <div class="flex gap-2 pt-4">
+        </div>
+        
+        <div class="flex gap-2 pt-4">
             <Button 
               variant="outline" 
               @click="handleRotate" 
               :loading="rotating"
               class="w-full sm:w-auto"
             >
-              Rotar Credenciales
-            </Button>
+            Rotar Credenciales
+          </Button>
           </div>
           </div>
         </div>
@@ -201,11 +201,16 @@ async function loadCredentials(dbId: string) {
   loading.value = true
   try {
     const creds = await databaseStore.getCredentials(dbId)
-    credentials.value = creds
-    isFirstView.value = creds.firstView
-    showPassword.value = creds.firstView
+    if (creds) {
+      credentials.value = creds
+      isFirstView.value = creds.firstView
+      showPassword.value = creds.firstView
+    } else {
+      toastStore.error('Error', 'No se pudieron cargar las credenciales')
+    }
   } catch (error: any) {
-    toastStore.error('Error', 'No se pudieron cargar las credenciales')
+    console.error('Error loading credentials:', error)
+    toastStore.error('Error', error.message || 'No se pudieron cargar las credenciales')
   } finally {
     loading.value = false
   }

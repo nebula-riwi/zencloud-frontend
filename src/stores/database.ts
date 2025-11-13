@@ -54,20 +54,78 @@ export const useDatabaseStore = defineStore('database', () => {
 
   async function getCredentials(_id: string): Promise<DatabaseCredentials> {
     try {
-      // Obtener la base de datos para extraer las credenciales
-      const database = await databaseService.getDatabaseById(_id)
+      // Obtener la base de datos directamente del backend
+      const response = await databaseService.getDatabaseById(_id)
       
-      // El backend no tiene un endpoint específico para obtener credenciales
-      // Por ahora, construimos las credenciales desde la información disponible
-      // NOTA: El backend puede necesitar un endpoint específico para esto
-    return {
-        host: database.host || '168.119.182.243', // IP del servidor (del backend)
-        port: database.port || 3306,
-        username: database.username || '',
-        password: '', // El backend no expone la contraseña por seguridad
-        database: database.name,
-      firstView: true,
-        connectionString: database.connectionString,
+      // Usar los datos directamente del backend
+      let host = response.host || '168.119.182.243' // IP por defecto del servidor
+      let port = response.port || 3306
+      let username = response.username || ''
+      let databaseName = response.name || ''
+      
+      // Intentar parsear la connection string para obtener más información
+      if (response.connectionString) {
+        const connParts = response.connectionString.split(';')
+        connParts.forEach((part) => {
+          const trimmedPart = part.trim()
+          if (!trimmedPart) return
+          
+          const equalIndex = trimmedPart.indexOf('=')
+          if (equalIndex === -1) return
+          
+          const key = trimmedPart.substring(0, equalIndex).trim().toLowerCase()
+          const value = trimmedPart.substring(equalIndex + 1).trim()
+          
+          if ((key === 'server' || key === 'host') && value) {
+            host = value
+          }
+          if (key === 'port' && value) {
+            const parsedPort = parseInt(value, 10)
+            if (!isNaN(parsedPort) && parsedPort > 0) port = parsedPort
+          }
+          if ((key === 'user' || key === 'user id' || key === 'username' || key === 'uid') && value) {
+            username = value
+          }
+          if ((key === 'database' || key === 'initial catalog' || key === 'db') && value) {
+            databaseName = value
+          }
+        })
+      }
+      
+      // Fallback: usar los datos del response si no se encontraron en la connection string
+      if (!host || host === '168.119.182.243') {
+        host = response.host || '168.119.182.243'
+      }
+      if (!port || port === 3306) {
+        port = response.port || 3306
+      }
+      if (!username) {
+        username = response.username || ''
+      }
+      if (!databaseName) {
+        databaseName = response.name || ''
+      }
+      
+      console.log('Credenciales obtenidas:', { 
+        host, 
+        port, 
+        username, 
+        databaseName,
+        connectionString: response.connectionString?.substring(0, 50) + '...',
+        responseHost: response.host,
+        responsePort: response.port,
+        responseUsername: response.username,
+        responseName: response.name
+      })
+      
+      return {
+        host: host,
+        port: port,
+        username: username,
+        password: '***La contraseña se envió por correo electrónico***', // El backend no expone la contraseña por seguridad
+        database: databaseName,
+        firstView: false,
+        connectionString: response.connectionString,
       }
     } catch (error: any) {
       console.error('Error getting credentials:', error)
