@@ -89,7 +89,7 @@
             
             <div v-else-if="filteredDatabases.length === 0" class="text-center py-16">
               <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#e78a53]/20 to-[#e78a53]/10 border border-[#e78a53]/30 mb-6">
-                <Database class="h-10 w-10 text-[#e78a53] opacity-70" />
+                <DatabaseIcon class="h-10 w-10 text-[#e78a53] opacity-70" />
               </div>
               <h3 class="text-2xl font-bold text-white mb-3">No hay bases de datos</h3>
               <p class="text-white/60 mb-6 text-lg">
@@ -120,7 +120,7 @@
                       <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2 mb-2">
                           <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#e78a53]/20 to-[#e78a53]/10 flex items-center justify-center border border-[#e78a53]/30 shrink-0">
-                            <Database class="h-4 w-4 text-[#e78a53]" />
+                            <DatabaseIcon class="h-4 w-4 text-[#e78a53]" />
                           </div>
                           <CardTitle class="text-xl text-white truncate">{{ db.name }}</CardTitle>
                         </div>
@@ -149,7 +149,7 @@
                     </div>
                   </CardContent>
                   
-                  <CardFooter class="relative z-10 flex gap-2 pt-4 border-t border-white/10">
+                  <CardFooter class="relative z-10 flex flex-wrap gap-2 pt-4 border-t border-white/10">
                     <template v-if="db.status === 'active'">
                       <Button
                         variant="outline"
@@ -158,6 +158,17 @@
                         class="flex-1 border-white/10 hover:border-[#e78a53]/40 hover:bg-[#e78a53]/10 transition-all"
                       >
                         Credenciales
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        :disabled="!isExportable(db) || exportingDbId === db.id"
+                        @click="exportDatabaseInstance(db)"
+                        class="flex-1 border-white/10 hover:border-[#e78a53]/40 hover:bg-[#e78a53]/10 transition-all"
+                        :title="isExportable(db) ? 'Descargar archivo SQL' : 'Solo disponible para motores SQL'"
+                      >
+                        <span v-if="exportingDbId === db.id" class="animate-pulse">Exportando...</span>
+                        <span v-else>Exportar</span>
                       </Button>
                       <Button
                         variant="warning"
@@ -169,6 +180,17 @@
                       </Button>
                     </template>
                     <template v-else-if="db.status === 'inactive'">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        :disabled="!isExportable(db) || exportingDbId === db.id"
+                        @click="exportDatabaseInstance(db)"
+                        class="flex-1 border-white/10 hover:border-[#e78a53]/40 hover:bg-[#e78a53]/10 transition-all"
+                        :title="isExportable(db) ? 'Descargar archivo SQL' : 'Solo disponible para motores SQL'"
+                      >
+                        <span v-if="exportingDbId === db.id" class="animate-pulse">Exportando...</span>
+                        <span v-else>Exportar</span>
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -280,8 +302,8 @@ import TabsTrigger from '@/components/ui/TabsTrigger.vue'
 import AlertDialog from '@/components/ui/AlertDialog.vue'
 import CreateDatabaseModal from '@/components/databases/CreateDatabaseModal.vue'
 import CredentialsModal from '@/components/databases/CredentialsModal.vue'
-import { Database, Plus } from 'lucide-vue-next'
-import type { DatabaseEngine, DatabaseStatus } from '@/types'
+import { Database as DatabaseIcon, Plus } from 'lucide-vue-next'
+import type { DatabaseEngine, DatabaseStatus, Database } from '@/types'
 import { storeToRefs } from 'pinia'
 
 const route = useRoute()
@@ -302,6 +324,9 @@ const selectedDatabaseId = ref<string | null>(null)
 const databaseToDelete = ref<string | null>(null)
 const databaseToDeactivate = ref<string | null>(null)
 const databaseToActivate = ref<string | null>(null)
+
+const exportingDbId = ref<string | null>(null)
+const exportableEngines: DatabaseEngine[] = ['mysql', 'postgresql']
 
 const filteredDatabases = computed(() => {
   if (selectedEngine.value === 'all') return databases.value
@@ -350,6 +375,35 @@ function formatDate(date: string) {
   return new Date(date).toLocaleDateString('es-ES')
 }
 
+function isExportable(db: Database) {
+  return exportableEngines.includes(db.engine)
+}
+
+async function exportDatabaseInstance(db: Database) {
+  if (!isExportable(db)) {
+    toastStore.error('Sin exportación', 'Solo puedes exportar bases de datos SQL.')
+    return
+  }
+
+  try {
+    exportingDbId.value = db.id
+    const blob = await databaseStore.exportDatabase(db.id)
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${db.name}-${new Date().toISOString().slice(0, 10)}.sql`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+    toastStore.success('Exportación lista', 'Se descargó el archivo SQL.')
+  } catch (error: any) {
+    const message = error?.message || 'No se pudo exportar la base de datos'
+    toastStore.error('Error', message)
+  } finally {
+    exportingDbId.value = null
+  }
+}
 function showCredentials(dbId: string) {
   selectedDatabaseId.value = dbId
   showCredentialsModal.value = true

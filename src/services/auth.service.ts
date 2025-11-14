@@ -62,8 +62,8 @@ export const authService = {
    * Cierra sesión (solo limpia el token local, el backend no tiene endpoint de logout)
    */
   async logout(): Promise<void> {
-    // El backend no tiene endpoint de logout, solo limpiamos el token local
-    // Esto se maneja en el store de auth
+    sessionStorage.removeItem('Token')
+    sessionStorage.removeItem('Email')
   },
 
   /**

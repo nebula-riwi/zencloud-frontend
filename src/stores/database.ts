@@ -207,6 +207,15 @@ export const useDatabaseStore = defineStore('database', () => {
     }
   }
 
+  async function exportDatabase(id: string): Promise<Blob> {
+    try {
+      return await databaseService.exportDatabase(id)
+    } catch (error: any) {
+      console.error('Error exporting database:', error)
+      throw error
+    }
+  }
+
   function getDatabasesByEngine(engine: DatabaseEngine | 'all'): Database[] {
     if (engine === 'all') return databases.value
     return databases.value.filter((db) => db.engine === engine)
@@ -223,6 +232,7 @@ export const useDatabaseStore = defineStore('database', () => {
     deactivateDatabase,
     getCredentials,
     rotateCredentials,
+    exportDatabase,
     getDatabasesByEngine,
   }
 })

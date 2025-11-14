@@ -100,6 +100,9 @@ export interface Plan {
   isActive?: boolean
   backendId?: number
   slug?: string
+  startDate?: string
+  endDate?: string
+  autoRenewEnabled?: boolean
 }
 
 // Respuesta del backend para Plan
@@ -151,6 +154,16 @@ export interface SqlQuery {
   dbId: string
   engine: DatabaseEngine
   query: string
+}
+
+export interface QueryHistoryItem {
+  id: string
+  query: string
+  success: boolean
+  rowCount?: number
+  executionTimeMs?: number
+  error?: string
+  executedAt: string
 }
 
 export interface DatabaseTable {

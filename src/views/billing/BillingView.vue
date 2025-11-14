@@ -33,6 +33,51 @@
 
       <!-- Plans with individual animations -->
       <div class="relative z-10">
+        <Transition name="fade-up" appear>
+          <Card
+            v-if="currentPlan"
+            class="mb-8 border-white/10 bg-black/40 backdrop-blur-sm shadow-xl shadow-black/40"
+          >
+            <CardHeader class="flex flex-wrap items-center justify-between gap-6 border-b border-white/10">
+              <div>
+                <CardTitle class="text-2xl text-white">Plan actual: {{ currentPlan?.name }}</CardTitle>
+                <CardDescription class="text-white/60 mt-1">
+                  {{ formattedEndDate ? `Renueva el ${formattedEndDate}` : 'Plan sin fecha de expiración' }}
+                </CardDescription>
+              </div>
+              <div class="flex items-center gap-4">
+                <div>
+                  <p class="text-sm font-semibold text-white/80">Renovación automática</p>
+                  <p class="text-xs text-white/45">
+                    {{ isPaidPlan ? 'Controla si el plan se renueva al vencer' : 'Disponible solo para planes de pago' }}
+                  </p>
+                </div>
+                <Switch
+                  :model-value="autoRenewState"
+                  :disabled="autoRenewLoading || !isPaidPlan"
+                  @update:modelValue="onToggleAutoRenew"
+                  class="scale-110"
+                />
+              </div>
+            </CardHeader>
+            <CardContent class="flex flex-wrap items-center gap-4 text-white/80">
+              <Badge variant="outline" class="border-white/20 text-white/90">
+                {{ isPaidPlan ? 'Plan de pago' : 'Plan gratuito' }}
+              </Badge>
+              <Badge
+                v-if="formattedEndDate && daysRemaining !== null"
+                :variant="daysRemaining && daysRemaining > 3 ? 'success' : 'warning'"
+                class="capitalize"
+              >
+                {{ daysRemaining === 0 ? 'Vence hoy' : `Quedan ${daysRemaining} días` }}
+              </Badge>
+              <p class="text-sm text-white/60">
+                {{ (currentPlan?.price || 0) === 0 ? 'Sin costo mensual' : `Valor mensual: $${currentPlan?.price.toLocaleString()} COP` }}
+              </p>
+            </CardContent>
+          </Card>
+        </Transition>
+
         <div v-if="loadingPlans" class="grid gap-6 md:grid-cols-3">
           <div v-for="index in 3" :key="`plan-skeleton-${index}`" class="h-72 rounded-2xl bg-white/5 animate-pulse border border-white/10"></div>
         </div>
@@ -168,7 +213,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { usePlanStore } from '@/stores/plan'
 import { useToastStore } from '@/stores/toast'
 import { paymentService } from '@/services/payment.service'
@@ -181,6 +226,7 @@ import CardContent from '@/components/ui/CardContent.vue'
 import CardFooter from '@/components/ui/CardFooter.vue'
 import Button from '@/components/ui/Button.vue'
 import Badge from '@/components/ui/Badge.vue'
+import Switch from '@/components/ui/Switch.vue'
 import { Crown, Sparkles, Zap, Receipt } from 'lucide-vue-next'
 import type { Plan, PaymentHistory } from '@/types'
 import { storeToRefs } from 'pinia'
@@ -200,11 +246,48 @@ const displayPlans = computed<Plan[]>(() => {
   return fallbackPlans
 })
 
-const activePlanInfo = computed(() => ({
-  backendId: currentPlan.value?.backendId,
-  slug: currentPlan.value?.slug,
-  id: currentPlan.value?.id,
-}))
+const isPaidPlan = computed(() => (currentPlan.value?.price ?? 0) > 0)
+const autoRenewState = ref(false)
+const autoRenewLoading = ref(false)
+
+watch(
+  currentPlan,
+  (plan) => {
+    autoRenewState.value = plan?.autoRenewEnabled ?? false
+  },
+  { immediate: true }
+)
+
+const formattedEndDate = computed(() => {
+  if (!currentPlan.value?.endDate) return null
+  const date = new Date(currentPlan.value.endDate)
+  return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
+})
+
+const daysRemaining = computed(() => {
+  if (!currentPlan.value?.endDate) return null
+  const diff = new Date(currentPlan.value.endDate).getTime() - Date.now()
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
+  return days > 0 ? days : 0
+})
+
+async function onToggleAutoRenew(value: boolean) {
+  if (!isPaidPlan.value) {
+    return
+  }
+  autoRenewLoading.value = true
+  try {
+    await planStore.toggleAutoRenew(value)
+    toastStore.success('Renovación automática', value ? 'Se activó la renovación automática.' : 'Se desactivó la renovación automática.')
+    autoRenewState.value = value
+  } catch (error: any) {
+    autoRenewState.value = !value
+    const message = error?.response?.data?.message || error?.message || 'No se pudo actualizar la renovación automática'
+    toastStore.error('Error', message)
+  } finally {
+    autoRenewLoading.value = false
+  }
+}
 
 function isPlanActive(plan: Plan): boolean {
   // Si no hay plan actual, ningún plan está activo

@@ -1,16 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { SqlResult, Database } from '@/types'
+import type { SqlResult, Database, QueryHistoryItem } from '@/types'
 import { sqlService } from '@/services/sql.service'
-
-interface QueryHistory {
-  id: string
-  query: string
-  dbId: string
-  engine: string
-  timestamp: number
-  success: boolean
-}
 
 export interface DatabaseTable {
   name: string
@@ -21,31 +12,11 @@ export interface DatabaseTable {
 export const useSqlStore = defineStore('sql', () => {
   const selectedDb = ref<Database | null>(null)
   const queryText = ref('')
-  const history = ref<QueryHistory[]>([])
+  const history = ref<QueryHistoryItem[]>([])
   const isRunning = ref(false)
   const results = ref<SqlResult | null>(null)
   const tables = ref<DatabaseTable[]>([])
   const loadingTables = ref(false)
-
-  // Load history from localStorage
-  function loadHistory() {
-    const stored = localStorage.getItem('sql_query_history')
-    if (stored) {
-      try {
-        history.value = JSON.parse(stored)
-      } catch {
-        history.value = []
-      }
-    }
-  }
-
-  // Save history to localStorage
-  function saveHistory() {
-    localStorage.setItem('sql_query_history', JSON.stringify(history.value))
-  }
-
-  // Initialize
-  loadHistory()
 
   async function runQuery(query: string, db: Database): Promise<SqlResult> {
     if (!db) throw new Error('No database selected')
@@ -57,29 +28,16 @@ export const useSqlStore = defineStore('sql', () => {
       
       results.value = result
 
-      // Add to history
-      const historyItem: QueryHistory = {
-        id: `${Date.now()}-${Math.random()}`,
-        query,
-        dbId: db.id,
-        engine: db.engine,
-        timestamp: Date.now(),
-        success: result.success,
-      }
-      history.value.unshift(historyItem)
-      // Keep only last 50 queries
-      if (history.value.length > 50) {
-        history.value = history.value.slice(0, 50)
-      }
-      saveHistory()
+      await fetchHistory(db)
 
       return result
     } catch (error: any) {
       console.error('Error running query:', error)
+      const backendMessage = error?.response?.data?.error || error?.response?.data?.message || error.message || 'Error al ejecutar query'
       const errorResult: SqlResult = {
         success: false,
-        error: error.message || 'Error al ejecutar query',
-        errorMessage: error.message || 'Error al ejecutar query',
+        error: backendMessage,
+        errorMessage: backendMessage,
         executionTime: 0,
         affectedRows: 0,
       }
@@ -95,32 +53,32 @@ export const useSqlStore = defineStore('sql', () => {
     results.value = null
   }
 
-  function pushHistory(item: QueryHistory) {
-    history.value.unshift(item)
-    saveHistory()
-  }
-
-  function clearHistory() {
-    history.value = []
-    saveHistory()
-  }
-
-  function selectDatabase(db: Database | null) {
+  async function selectDatabase(db: Database | null) {
     selectedDb.value = db
-    // Save to localStorage
     if (db) {
       localStorage.setItem('sql_selected_db', db.id)
+      try {
+        await fetchHistory(db)
+      } catch {
+        history.value = []
+      }
     } else {
       localStorage.removeItem('sql_selected_db')
+      history.value = []
     }
   }
 
-  function loadSelectedDatabase(databases: Database[]) {
+  async function loadSelectedDatabase(databases: Database[]) {
     const storedId = localStorage.getItem('sql_selected_db')
     if (storedId) {
       const db = databases.find((d) => d.id === storedId)
       if (db) {
         selectedDb.value = db
+        try {
+          await fetchHistory(db)
+        } catch {
+          history.value = []
+        }
       }
     }
   }
@@ -144,6 +102,22 @@ export const useSqlStore = defineStore('sql', () => {
     }
   }
 
+  async function fetchHistory(db: Database, limit = 20): Promise<QueryHistoryItem[]> {
+    if (!db) {
+      history.value = []
+      return []
+    }
+
+    try {
+      const items = await sqlService.getHistory(db.id, limit)
+      history.value = items
+      return items
+    } catch (error) {
+      history.value = []
+      throw error
+    }
+  }
+
   return {
     selectedDb,
     queryText,
@@ -154,11 +128,10 @@ export const useSqlStore = defineStore('sql', () => {
     loadingTables,
     runQuery,
     clear,
-    pushHistory,
-    clearHistory,
     selectDatabase,
     loadSelectedDatabase,
     fetchTables,
+    fetchHistory,
   }
 })
 
