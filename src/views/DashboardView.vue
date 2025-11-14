@@ -249,19 +249,16 @@ watch(() => currentPlan.value, async (newPlan, oldPlan) => {
 }, { deep: true })
 
 onMounted(async () => {
-  // Load mock data - Backend will be implemented later
   try {
     await Promise.all([
       planStore.fetchPlan(),
       databaseStore.fetchDatabases(),
       // webhookStore.fetchWebhooks().catch(() => {
-      //   // Ignorar errores de webhooks (están deshabilitados temporalmente)
-      //   console.log('Webhooks deshabilitados temporalmente')
+      //   console.warn('Webhooks deshabilitados temporalmente')
       // }),
     ])
   } catch (error) {
-    // Silently fail - using mock data
-    console.log('Using mock data - backend not available yet')
+    console.error('No fue posible cargar la información del dashboard:', error)
   }
   
   // Verificar si se regresó de un pago exitoso

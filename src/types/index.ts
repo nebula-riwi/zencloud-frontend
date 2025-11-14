@@ -87,6 +87,15 @@ export type DatabaseEngine = 'mysql' | 'postgresql' | 'mongodb' | 'sqlserver' | 
 
 export type DatabaseStatus = 'active' | 'inactive' | 'creating' | 'stopped' | 'error' | 'deleting'
 
+export interface DatabaseEngineInfo {
+  id: string
+  name: string
+  slug: string
+  defaultPort: number
+  description?: string
+  isActive: boolean
+}
+
 export interface Plan {
   id: string | number // PlanId del backend
   name: string // PlanName del backend

@@ -50,6 +50,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/PromoView.vue'),
   },
   {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () => import('@/views/auth/ResetPasswordView.vue'),
+  },
+  {
     path: '/success',
     name: 'PaymentSuccess',
     component: () => import('@/views/billing/PaymentResultView.vue'),

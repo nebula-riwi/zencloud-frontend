@@ -187,7 +187,7 @@
                     <textarea
                       v-model="queryText"
                       class="flex-1 font-mono text-sm p-4 rounded-xl border border-white/10 bg-black/30 backdrop-blur-sm text-white placeholder:text-white/40 resize-none focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 transition-all"
-                      placeholder="SELECT * FROM table_name;"
+                      placeholder="SELECT * FROM nombre_tabla;"
                     />
                   </div>
 
@@ -393,7 +393,7 @@ onMounted(async () => {
       await sqlStore.fetchTables(selectedDb.value)
     }
   } catch (error) {
-    console.log('Using mock data - backend not available yet')
+    console.error('No se pudieron cargar las bases de datos para el editor SQL:', error)
   }
 })
 </script>

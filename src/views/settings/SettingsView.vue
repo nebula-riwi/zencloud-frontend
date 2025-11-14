@@ -153,12 +153,10 @@ async function savePreferences() {
 }
 
 onMounted(async () => {
-  // Load mock data - Backend will be implemented later
   try {
     await userPrefsStore.fetchPrefs()
   } catch (error) {
-    // Silently fail - using mock data
-    console.log('Using mock data - backend not available yet')
+    console.error('No fue posible cargar las preferencias del usuario:', error)
   }
 })
 </script>

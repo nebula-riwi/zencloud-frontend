@@ -1,7 +1,11 @@
 import apiClient from './api'
 import { getUserIdFromToken } from '@/utils/jwt'
-import type { Database, DatabaseInstanceResponse, CreateDatabaseRequestDto } from '@/types'
-import type { DatabaseEngine } from '@/types'
+import type { Database, DatabaseInstanceResponse, CreateDatabaseRequestDto, DatabaseEngine, DatabaseEngineInfo } from '@/types'
+
+const SUPPORTED_ENGINES: DatabaseEngine[] = ['mysql', 'postgresql', 'mongodb', 'sqlserver', 'redis', 'cassandra']
+let engineIdCache: Partial<Record<DatabaseEngine, string>> = {}
+let fetchEnginesPromise: Promise<DatabaseEngineInfo[]> | null = null
+let engineListCache: DatabaseEngineInfo[] = []
 
 /**
  * Servicio para gestionar bases de datos
@@ -56,11 +60,11 @@ export const databaseService = {
 
   /**
    * Crea una nueva base de datos
-   * @param engineId - ID del motor de base de datos (Guid)
+   * @param engineName - Motor seleccionado
    * @param databaseName - Nombre opcional para la base de datos
    * @returns Base de datos creada
    */
-  async createDatabase(engineId: string, databaseName?: string): Promise<Database> {
+  async createDatabase(engineName: DatabaseEngine, databaseName?: string): Promise<Database> {
     try {
       const token = sessionStorage.getItem('Token')
       if (!token) {
@@ -71,6 +75,8 @@ export const databaseService = {
       if (!userId) {
         throw new Error('No se pudo obtener el userId del token')
       }
+
+      const engineId = await resolveEngineId(engineName)
 
       const request: CreateDatabaseRequestDto = {
         userId,
@@ -135,6 +141,10 @@ export const databaseService = {
       const errorMessage = error.response?.data?.message || error.message || 'Error al desactivar base de datos'
       throw new Error(errorMessage)
     }
+  },
+
+  async fetchEngines(): Promise<DatabaseEngineInfo[]> {
+    return await loadEngineCatalog()
   },
 
   async exportDatabase(instanceId: string): Promise<Blob> {
@@ -281,25 +291,71 @@ export const databaseService = {
  * Mapeo de nombres de engines a IDs (Guid) tal como están registrados en la BD
  * Si se agregan nuevos engines en el backend, recuerda actualizar este objeto.
  */
-export const ENGINE_IDS: Partial<Record<DatabaseEngine, string>> = {
-  mysql: '11111111-1111-1111-1111-111111111111',
-  postgresql: '22222222-2222-2222-2222-222222222222',
-  mongodb: '33333333-3333-3333-3333-333333333333',
-  sqlserver: '44444444-4444-4444-4444-444444444444',
-  redis: '55555555-5555-5555-5555-555555555555',
-  // Cassandra aún no está configurado en la BD del backend. Cuando se agregue,
-  // incluye aquí el GUID correspondiente.
+async function loadEngineCatalog(): Promise<DatabaseEngineInfo[]> {
+  if (engineListCache.length > 0 && !fetchEnginesPromise) {
+    return engineListCache
+  }
+
+  if (!fetchEnginesPromise) {
+    fetchEnginesPromise = fetchEnginesFromApi().finally(() => {
+      fetchEnginesPromise = null
+    })
+  }
+
+  engineListCache = await fetchEnginesPromise
+  return engineListCache
 }
 
-/**
- * Obtiene el EngineId para un nombre de engine
- * @param engineName - Nombre del engine
- * @returns EngineId (Guid)
- */
-export function getEngineId(engineName: DatabaseEngine): string {
-  const engineId = ENGINE_IDS[engineName]
+async function fetchEnginesFromApi(): Promise<DatabaseEngineInfo[]> {
+  const response = await apiClient.get<{ data: Array<{
+    id: string
+    name: string
+    slug?: string
+    defaultPort: number
+    description?: string
+    isActive: boolean
+  }> }>('/api/DatabaseInstance/engines')
+
+  const engines: DatabaseEngineInfo[] = response.data.data.map((engine) => {
+    const slug = normalizeEngineSlug(engine.slug || engine.name)
+    return {
+      id: engine.id,
+      name: engine.name,
+      slug: slug ?? (engine.slug || engine.name).toLowerCase(),
+      defaultPort: engine.defaultPort,
+      description: engine.description,
+      isActive: engine.isActive,
+    }
+  })
+
+  cacheEngineIds(engines)
+  engineListCache = engines
+  return engines
+}
+
+function cacheEngineIds(engines: DatabaseEngineInfo[]) {
+  engines.forEach((engine) => {
+    const normalized = normalizeEngineSlug(engine.slug)
+    if (normalized) {
+      engineIdCache[normalized] = engine.id
+    }
+  })
+}
+
+function normalizeEngineSlug(slug?: string | DatabaseEngine): DatabaseEngine | null {
+  if (!slug) return null
+  const normalized = slug.toString().toLowerCase() as DatabaseEngine
+  return SUPPORTED_ENGINES.includes(normalized) ? normalized : null
+}
+
+async function resolveEngineId(engineName: DatabaseEngine): Promise<string> {
+  if (!engineIdCache[engineName]) {
+    await loadEngineCatalog()
+  }
+
+  const engineId = engineIdCache[engineName]
   if (!engineId) {
-    throw new Error(`Engine ${engineName} no tiene un EngineId configurado. Actualiza ENGINE_IDS en database.service.ts`)
+    throw new Error(`No se encontró un EngineId para el motor ${engineName}.`)
   }
   return engineId
 }

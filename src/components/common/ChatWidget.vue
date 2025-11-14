@@ -39,6 +39,7 @@ function initializeChat() {
       }
     })
     console.log('ChatWidget: Chat inicializado correctamente')
+    localizeChatTexts()
   } catch (error) {
     console.error('ChatWidget: Error inicializando chat:', error)
   }
@@ -189,6 +190,39 @@ onMounted(() => {
 onUnmounted(() => {
   cleanupInterceptor()
 })
+
+function localizeChatTexts() {
+  let attempts = 0
+  const interval = setInterval(() => {
+    attempts++
+    const container = document.querySelector('#n8n-chat-container, [id*="n8n-chat"]')
+    if (!container) {
+      if (attempts > 10) clearInterval(interval)
+      return
+    }
+
+    const headerTitle = container.querySelector('h2')
+    if (headerTitle) {
+      headerTitle.textContent = '¡Hola!'
+    }
+
+    const subtitle = container.querySelector('p')
+    if (subtitle && /start a chat/i.test(subtitle.textContent || '')) {
+      subtitle.textContent = 'Empecemos, estamos aquí para ayudarte 24/7.'
+    }
+
+    const input = container.querySelector('input[type="text"], textarea')
+    if (input) {
+      input.setAttribute('placeholder', 'Escribe tu pregunta...')
+    }
+
+    if (headerTitle && subtitle && input) {
+      clearInterval(interval)
+    } else if (attempts > 10) {
+      clearInterval(interval)
+    }
+  }, 500)
+}
 </script>
 
 <style>
@@ -288,6 +322,16 @@ onUnmounted(() => {
 [id*="n8n-chat"] [class*="user-message"] {
   color: #0f1014 !important;
   font-weight: 600;
+}
+
+#n8n-chat-container .n8n-chat__message--user,
+[id*="n8n-chat"] .n8n-chat__message--user {
+  color: #0f1014 !important;
+}
+
+#n8n-chat-container .n8n-chat__message--bot,
+[id*="n8n-chat"] .n8n-chat__message--bot {
+  color: rgba(245, 247, 250, 0.95) !important;
 }
 
 #n8n-chat-container [class*="bot-message"],

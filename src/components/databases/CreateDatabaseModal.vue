@@ -113,8 +113,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 import { useDatabaseStore } from '@/stores/database'
+import { storeToRefs } from 'pinia'
 import { useToastStore } from '@/stores/toast'
 import Dialog from '@/components/ui/Dialog.vue'
 import CustomSelect from '@/components/ui/CustomSelect.vue'
@@ -131,6 +132,7 @@ const emit = defineEmits<{
 }>()
 
 const databaseStore = useDatabaseStore()
+const { availableEngines } = storeToRefs(databaseStore)
 const toastStore = useToastStore()
 
 const formData = reactive({
@@ -140,15 +142,23 @@ const formData = reactive({
 
 const loading = ref(false)
 
-// Engine options for the select
-const engineOptions = [
+const fallbackEngineOptions = [
   { value: 'mysql', label: 'MySQL' },
   { value: 'postgresql', label: 'PostgreSQL' },
   { value: 'mongodb', label: 'MongoDB' },
   { value: 'sqlserver', label: 'SQL Server' },
   { value: 'redis', label: 'Redis' },
-  { value: 'cassandra', label: 'Cassandra' },
 ]
+
+const engineOptions = computed(() => {
+  if (!availableEngines.value.length) return fallbackEngineOptions
+  return availableEngines.value
+    .filter((engine) => typeof engine.slug === 'string')
+    .map((engine) => ({
+      value: engine.slug as DatabaseEngine,
+      label: engine.name,
+    }))
+})
 
 // Watch for preselected engine
 watch(() => props.preselectedEngine, (newEngine) => {

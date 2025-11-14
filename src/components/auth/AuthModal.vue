@@ -556,6 +556,7 @@ const resetPasswordData = ref({
   password: '',
   confirmPassword: '',
 })
+const resetContext = ref({ email: '', token: '' })
 
 const { validate: validateLogin } = useFormValidation(loginSchema)
 const { validate: validateRegister } = useFormValidation(registerSchema)
@@ -567,18 +568,24 @@ watch(() => props.mode, (newMode) => {
 })
 
 // Check if reset password token is in URL
-watch(() => route.query.token, (token) => {
-  if (token && typeof token === 'string') {
-    showResetPassword.value = true
-    showForgotPassword.value = false
-  }
-}, { immediate: true })
+watch(
+  () => ({ token: route.query.token, email: route.query.email }),
+  ({ token, email }) => {
+    if (typeof token === 'string' && typeof email === 'string' && token && email) {
+      showResetPassword.value = true
+      showForgotPassword.value = false
+      resetContext.value = { email, token }
+    }
+  },
+  { immediate: true }
+)
 
 function updateValue(value: boolean) {
   emit('update:modelValue', value)
   if (!value) {
     showForgotPassword.value = false
     showResetPassword.value = false
+    resetContext.value = { email: '', token: '' }
   }
 }
 
@@ -603,13 +610,13 @@ async function handleForgotPassword() {
 
   loading.value = true
   try {
-    // Mock - Backend will be implemented later
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    toastStore.success('Email enviado', 'Revisa tu correo para restablecer tu contraseña')
+    await authService.forgotPassword(forgotPasswordData.value.email.trim())
+    toastStore.success('Solicitud recibida', 'Si el correo existe, enviamos un enlace para restablecer tu contraseña.')
     showForgotPassword.value = false
     forgotPasswordData.value.email = ''
   } catch (error: any) {
-    toastStore.error('Error', 'No se pudo enviar el email. Intenta nuevamente.')
+    const message = error?.response?.data?.message || error.message || 'No se pudo enviar el correo. Intenta nuevamente.'
+    toastStore.error('Error', message)
   } finally {
     loading.value = false
   }
@@ -621,19 +628,34 @@ async function handleResetPassword() {
     return
   }
 
+  if (resetPasswordData.value.password.length < 8) {
+    toastStore.warning('Contraseña muy corta', 'La contraseña debe tener al menos 8 caracteres.')
+    return
+  }
+
+  if (!resetContext.value.email || !resetContext.value.token) {
+    toastStore.error('Enlace inválido', 'El enlace para restablecer tu contraseña no es válido.')
+    return
+  }
+
   loading.value = true
   try {
-    // Mock - Backend will be implemented later
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await authService.resetPassword({
+      email: resetContext.value.email,
+      token: resetContext.value.token,
+      newPassword: resetPasswordData.value.password,
+    })
     toastStore.success('Contraseña actualizada', 'Tu contraseña ha sido cambiada correctamente')
     showResetPassword.value = false
     resetPasswordData.value.password = ''
     resetPasswordData.value.confirmPassword = ''
+    resetContext.value = { email: '', token: '' }
     updateValue(false)
     // Redirigir a Home y abrir modal de login
     router.push({ name: 'Home', query: { action: 'login' } })
   } catch (error: any) {
-    toastStore.error('Error', 'No se pudo cambiar la contraseña. Intenta nuevamente.')
+    const message = error?.response?.data?.message || error.message || 'No se pudo cambiar la contraseña. Intenta nuevamente.'
+    toastStore.error('Error', message)
   } finally {
     loading.value = false
   }
