@@ -498,8 +498,7 @@ onMounted(async () => {
       planStore.fetchPlan(),
     ])
   } catch (error) {
-    // Silently fail - using mock data
-    console.log('Using mock data - backend not available yet')
+    console.error('Error loading data for databases view:', error)
   }
 })
 </script>

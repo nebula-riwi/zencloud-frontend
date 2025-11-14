@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Database, DatabaseEngine, DatabaseCredentials } from '@/types'
-import { databaseService, getEngineId } from '@/services/database.service'
+import type { Database, DatabaseEngine, DatabaseCredentials, DatabaseEngineInfo } from '@/types'
+import { databaseService } from '@/services/database.service'
 
 export const useDatabaseStore = defineStore('database', () => {
   const databases = ref<Database[]>([])
   const loading = ref(false)
+  const availableEngines = ref<DatabaseEngineInfo[]>([])
   const selectedEngine = ref<DatabaseEngine | 'all'>('all')
 
   async function fetchDatabases(_engine?: DatabaseEngine): Promise<Database[]> {
@@ -13,6 +14,14 @@ export const useDatabaseStore = defineStore('database', () => {
     try {
       const fetchedDatabases = await databaseService.fetchDatabases()
       databases.value = fetchedDatabases
+      if (availableEngines.value.length === 0) {
+        try {
+          availableEngines.value = await databaseService.fetchEngines()
+        } catch (error) {
+          console.error('Error fetching engines:', error)
+          availableEngines.value = []
+        }
+      }
       return fetchedDatabases
     } catch (error: any) {
       console.error('Error fetching databases:', error)
@@ -24,11 +33,7 @@ export const useDatabaseStore = defineStore('database', () => {
 
   async function createDatabase(data: { name: string; engine: DatabaseEngine }): Promise<Database> {
     try {
-      // Obtener el EngineId del engine seleccionado
-      const engineId = getEngineId(data.engine)
-      
-      // Crear la base de datos en el backend con el nombre proporcionado
-      const newDatabase = await databaseService.createDatabase(engineId, data.name || undefined)
+      const newDatabase = await databaseService.createDatabase(data.engine, data.name || undefined)
       
       // Agregar a la lista local
       databases.value.push(newDatabase)
@@ -224,6 +229,7 @@ export const useDatabaseStore = defineStore('database', () => {
   return {
     databases,
     loading,
+    availableEngines,
     selectedEngine,
     fetchDatabases,
     createDatabase,
