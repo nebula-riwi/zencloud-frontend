@@ -135,10 +135,13 @@
         <!-- Call to Action Section -->
         <Transition name="fade-up" appear :delay="400">
           <div class="text-center mt-8 md:mt-10">
-            <div class="inline-flex items-center gap-3 px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-[#e78a53] to-[#f59a63] rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <button
+              @click="goToHome"
+              class="inline-flex items-center gap-3 px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-[#e78a53] to-[#f59a63] rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
+            >
               <span class="text-white font-bold text-base md:text-lg">Empieza gratis con 2 bases de datos por motor</span>
               <ArrowRight class="w-4 h-4 md:w-5 md:h-5 text-white" />
-            </div>
+            </button>
             <p class="text-white/60 text-xs md:text-sm mt-3">Sin tarjeta de crédito requerida</p>
           </div>
         </Transition>
@@ -175,9 +178,12 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { Zap, LayoutDashboard, Sparkles, ArrowRight } from 'lucide-vue-next'
 import { ENGINE_FALLBACKS } from '@/composables/useImageFallback'
 import Globe from '@/components/ui/Globe.vue'
+
+const router = useRouter()
 
 const engines = [
   {
@@ -221,6 +227,10 @@ const engines = [
 function handleQRError(e: Event) {
   console.error('Error loading QR code image:', e)
   // Puedes agregar un fallback aquí si es necesario
+}
+
+function goToHome() {
+  router.push('/')
 }
 </script>
 

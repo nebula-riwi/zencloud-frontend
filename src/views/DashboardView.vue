@@ -157,8 +157,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { usePlanStore } from '@/stores/plan'
 import { useDatabaseStore } from '@/stores/database'
@@ -175,6 +175,7 @@ import type { DatabaseEngine } from '@/types'
 import { storeToRefs } from 'pinia'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const planStore = usePlanStore()
 const databaseStore = useDatabaseStore()
@@ -238,6 +239,18 @@ function goToDatabases(engine: DatabaseEngine) {
   router.push(`/databases?engine=${engine}`)
 }
 
+// Watcher para actualizar cuando cambie el plan
+watch(() => currentPlan.value, async (newPlan, oldPlan) => {
+  // Si el plan cambió, refrescar los datos
+  if (newPlan && oldPlan && newPlan.id !== oldPlan.id) {
+    try {
+      await databaseStore.fetchDatabases()
+    } catch (error) {
+      console.error('Error actualizando bases de datos después del cambio de plan:', error)
+    }
+  }
+}, { deep: true })
+
 onMounted(async () => {
   // Load mock data - Backend will be implemented later
   try {
@@ -262,6 +275,7 @@ onMounted(async () => {
     // Actualizar el plan después de un pago exitoso
     try {
       await planStore.fetchPlan()
+      await databaseStore.fetchDatabases()
     } catch (error) {
       console.error('Error actualizando plan después del pago:', error)
     }

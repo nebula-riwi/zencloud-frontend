@@ -46,20 +46,37 @@ export const usePlanStore = defineStore('plan', () => {
   }
 
   async function fetchPlan(): Promise<Plan> {
-    await ensurePlansLoaded()
+    // Asegurar que los planes estén cargados primero
+    if (plans.value.length === 0) {
+      await fetchPlans()
+    }
     
     // Intentar obtener la suscripción actual del usuario
     try {
       const currentSubscription = await planService.fetchCurrentSubscription()
       if (currentSubscription) {
-        currentPlan.value = currentSubscription
+        // Buscar el plan en la lista de planes para asegurar consistencia
+        const matchingPlan = plans.value.find(
+          (p) => p.backendId === currentSubscription.backendId || 
+                 p.slug === currentSubscription.slug ||
+                 String(p.id) === String(currentSubscription.id)
+        )
+        
+        if (matchingPlan) {
+          // Actualizar el plan actual con el plan de la lista (más completo)
+          currentPlan.value = { ...matchingPlan, ...currentSubscription }
+        } else {
+          // Si no se encuentra en la lista, usar el de la suscripción
+          currentPlan.value = currentSubscription
+        }
         return currentPlan.value
       }
     } catch (error) {
-      console.log('No se pudo obtener la suscripción actual, usando plan por defecto:', error)
+      console.log('No se pudo obtener la suscripción actual:', error)
     }
     
     // Si no hay suscripción activa, usar el plan gratuito por defecto
+    // Solo si realmente no hay suscripción (no si hubo un error)
     if (!currentPlan.value && plans.value.length > 0) {
       const defaultPlan = plans.value.find((plan) => plan.slug === 'free') ?? plans.value[0]
       currentPlan.value = defaultPlan ?? null
