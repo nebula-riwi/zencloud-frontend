@@ -96,19 +96,43 @@ export const databaseService = {
    */
   async deleteDatabase(instanceId: string): Promise<void> {
     try {
-      const token = sessionStorage.getItem('Token')
-      if (!token) {
-        throw new Error('No hay token de autenticación')
-      }
-
-      const userId = getUserIdFromToken(token)
-      if (!userId) {
-        throw new Error('No se pudo obtener el userId del token')
-      }
-
-      await apiClient.delete(`/api/DatabaseInstance/${instanceId}?userId=${userId}`)
+      await apiClient.delete(`/api/DatabaseInstance/${instanceId}`)
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Error al eliminar base de datos'
+      throw new Error(errorMessage)
+    }
+  },
+
+  /**
+   * Activa una base de datos desactivada
+   * @param instanceId - ID de la instancia de base de datos
+   * @returns Base de datos actualizada
+   */
+  async activateDatabase(instanceId: string): Promise<Database> {
+    try {
+      const response = await apiClient.post<{ message: string; data: DatabaseInstanceResponse }>(
+        `/api/DatabaseInstance/${instanceId}/activate`
+      )
+      return this.mapDatabaseResponse(response.data.data)
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Error al activar base de datos'
+      throw new Error(errorMessage)
+    }
+  },
+
+  /**
+   * Desactiva una base de datos activa
+   * @param instanceId - ID de la instancia de base de datos
+   * @returns Base de datos actualizada
+   */
+  async deactivateDatabase(instanceId: string): Promise<Database> {
+    try {
+      const response = await apiClient.post<{ message: string; data: DatabaseInstanceResponse }>(
+        `/api/DatabaseInstance/${instanceId}/deactivate`
+      )
+      return this.mapDatabaseResponse(response.data.data)
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Error al desactivar base de datos'
       throw new Error(errorMessage)
     }
   },
@@ -122,6 +146,7 @@ export const databaseService = {
     // Mapear el estado del backend al formato del frontend
     const statusMap: Record<string, Database['status']> = {
       'Active': 'active',
+      'Inactive': 'inactive',
       'Creating': 'creating',
       'Stopped': 'stopped',
       'Error': 'error',

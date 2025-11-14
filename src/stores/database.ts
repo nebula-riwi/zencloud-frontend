@@ -45,9 +45,47 @@ export const useDatabaseStore = defineStore('database', () => {
       await databaseService.deleteDatabase(id)
       
       // Remover de la lista local
-    databases.value = databases.value.filter((db) => db.id !== id)
+      databases.value = databases.value.filter((db) => db.id !== id)
     } catch (error: any) {
       console.error('Error deleting database:', error)
+      throw error
+    }
+  }
+
+  async function activateDatabase(id: string): Promise<Database> {
+    try {
+      const updatedDatabase = await databaseService.activateDatabase(id)
+      
+      // Actualizar en la lista local
+      const index = databases.value.findIndex((db) => db.id === id)
+      if (index !== -1) {
+        databases.value[index] = updatedDatabase
+      } else {
+        databases.value.push(updatedDatabase)
+      }
+      
+      return updatedDatabase
+    } catch (error: any) {
+      console.error('Error activating database:', error)
+      throw error
+    }
+  }
+
+  async function deactivateDatabase(id: string): Promise<Database> {
+    try {
+      const updatedDatabase = await databaseService.deactivateDatabase(id)
+      
+      // Actualizar en la lista local
+      const index = databases.value.findIndex((db) => db.id === id)
+      if (index !== -1) {
+        databases.value[index] = updatedDatabase
+      } else {
+        databases.value.push(updatedDatabase)
+      }
+      
+      return updatedDatabase
+    } catch (error: any) {
+      console.error('Error deactivating database:', error)
       throw error
     }
   }
@@ -181,6 +219,8 @@ export const useDatabaseStore = defineStore('database', () => {
     fetchDatabases,
     createDatabase,
     deleteDatabase,
+    activateDatabase,
+    deactivateDatabase,
     getCredentials,
     rotateCredentials,
     getDatabasesByEngine,

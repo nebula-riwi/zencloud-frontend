@@ -32,8 +32,22 @@ function mapPaymentResponse(payment: PaymentHistoryResponseDto): PaymentHistory 
     day: 'numeric',
   })
 
-  const description = payment.planName 
-    ? `Suscripción ${payment.planName}`
+  // Mapear nombre del plan a español
+  const planNameMap: Record<string, string> = {
+    'Free': 'Gratis',
+    'free': 'Gratis',
+    'Intermediate': 'Intermedio',
+    'intermediate': 'Intermedio',
+    'Advanced': 'Avanzado',
+    'advanced': 'Avanzado',
+  }
+  
+  const planNameInSpanish = payment.planName 
+    ? planNameMap[payment.planName] || payment.planName
+    : null
+  
+  const description = planNameInSpanish 
+    ? `Suscripción ${planNameInSpanish}`
     : 'Pago de suscripción'
 
   return {

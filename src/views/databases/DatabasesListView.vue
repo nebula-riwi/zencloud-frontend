@@ -127,7 +127,7 @@
                         <CardDescription class="text-white/60 font-medium">{{ db.engine }}</CardDescription>
                       </div>
                       <Badge :variant="getStatusVariant(db.status)" class="shrink-0 text-xs px-2 py-1 whitespace-nowrap">
-                        {{ db.status }}
+                        {{ getStatusLabel(db.status) }}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -150,22 +150,52 @@
                   </CardContent>
                   
                   <CardFooter class="relative z-10 flex gap-2 pt-4 border-t border-white/10">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      @click="showCredentials(db.id)"
-                      class="flex-1 border-white/10 hover:border-[#e78a53]/40 hover:bg-[#e78a53]/10 transition-all"
-                    >
-                      Credenciales
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      @click="confirmDelete(db.id)"
-                      class="flex-1"
-                    >
-                      Eliminar
-                    </Button>
+                    <template v-if="db.status === 'active'">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        @click="showCredentials(db.id)"
+                        class="flex-1 border-white/10 hover:border-[#e78a53]/40 hover:bg-[#e78a53]/10 transition-all"
+                      >
+                        Credenciales
+                      </Button>
+                      <Button
+                        variant="warning"
+                        size="sm"
+                        @click="confirmDeactivate(db.id)"
+                        class="flex-1"
+                      >
+                        Desactivar
+                      </Button>
+                    </template>
+                    <template v-else-if="db.status === 'inactive'">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        @click="confirmActivate(db.id)"
+                        class="flex-1 border-white/10 hover:border-[#e78a53]/40 hover:bg-[#e78a53]/10 transition-all"
+                      >
+                        Reactivar
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        @click="confirmDelete(db.id)"
+                        class="flex-1"
+                      >
+                        Eliminar
+                      </Button>
+                    </template>
+                    <template v-else>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled
+                        class="flex-1 border-white/10 opacity-50"
+                      >
+                        {{ getStatusLabel(db.status) }}
+                      </Button>
+                    </template>
                   </CardFooter>
                   
                   <!-- Shine effect on hover -->
@@ -198,11 +228,33 @@
     <AlertDialog
       v-model="showDeleteDialog"
       title="Eliminar Base de Datos"
-      description="¿Estás seguro de que deseas eliminar esta base de datos? Esta acción no se puede deshacer."
+      description="¿Estás seguro de que deseas eliminar esta base de datos? Esta acción eliminará permanentemente la base de datos y todos sus datos. Esta acción no se puede deshacer."
       confirm-text="Eliminar"
       cancel-text="Cancelar"
       confirm-variant="danger"
       @confirm="handleDelete"
+    />
+
+    <!-- Deactivate Confirmation -->
+    <AlertDialog
+      v-model="showDeactivateDialog"
+      title="Desactivar Base de Datos"
+      description="¿Estás seguro de que deseas desactivar esta base de datos? La base de datos dejará de estar disponible pero permanecerá en el sistema. Podrás reactivarla más tarde."
+      confirm-text="Desactivar"
+      cancel-text="Cancelar"
+      confirm-variant="warning"
+      @confirm="handleDeactivate"
+    />
+
+    <!-- Activate Confirmation -->
+    <AlertDialog
+      v-model="showActivateDialog"
+      title="Reactivar Base de Datos"
+      description="¿Estás seguro de que deseas reactivar esta base de datos? Asegúrate de no haber alcanzado el límite de bases de datos activas según tu plan."
+      confirm-text="Reactivar"
+      cancel-text="Cancelar"
+      confirm-variant="primary"
+      @confirm="handleActivate"
     />
   </DashboardLayout>
 </template>
@@ -244,8 +296,12 @@ const selectedEngine = ref<DatabaseEngine | 'all'>('all')
 const showCreateModal = ref(false)
 const showCredentialsModal = ref(false)
 const showDeleteDialog = ref(false)
+const showDeactivateDialog = ref(false)
+const showActivateDialog = ref(false)
 const selectedDatabaseId = ref<string | null>(null)
 const databaseToDelete = ref<string | null>(null)
+const databaseToDeactivate = ref<string | null>(null)
+const databaseToActivate = ref<string | null>(null)
 
 const filteredDatabases = computed(() => {
   if (selectedEngine.value === 'all') return databases.value
@@ -253,10 +309,11 @@ const filteredDatabases = computed(() => {
 })
 
 const usedCount = computed(() => {
-  if (selectedEngine.value === 'all') {
-    return databases.value.length
-  }
-  return databases.value.filter((db) => db.engine === selectedEngine.value).length
+  const filtered = selectedEngine.value === 'all' 
+    ? databases.value 
+    : databases.value.filter((db) => db.engine === selectedEngine.value)
+  // Contar solo bases activas
+  return filtered.filter((db) => db.status === 'active').length
 })
 
 const canCreate = computed(() => {
@@ -268,12 +325,25 @@ const canCreate = computed(() => {
 function getStatusVariant(status: DatabaseStatus) {
   const variants: Record<DatabaseStatus, 'success' | 'warning' | 'error' | 'info'> = {
     active: 'success',
+    inactive: 'info',
     creating: 'warning',
     stopped: 'info',
     error: 'error',
     deleting: 'warning',
   }
   return variants[status] || 'info'
+}
+
+function getStatusLabel(status: DatabaseStatus): string {
+  const labels: Record<DatabaseStatus, string> = {
+    active: 'Activo',
+    inactive: 'Desactivada',
+    creating: 'Creando',
+    stopped: 'Detenida',
+    error: 'Error',
+    deleting: 'Eliminando',
+  }
+  return labels[status] || status
 }
 
 function formatDate(date: string) {
@@ -290,15 +360,60 @@ function confirmDelete(dbId: string) {
   showDeleteDialog.value = true
 }
 
+function confirmDeactivate(dbId: string) {
+  databaseToDeactivate.value = dbId
+  showDeactivateDialog.value = true
+}
+
+function confirmActivate(dbId: string) {
+  databaseToActivate.value = dbId
+  showActivateDialog.value = true
+}
+
 async function handleDelete() {
   if (!databaseToDelete.value) return
   try {
     await databaseStore.deleteDatabase(databaseToDelete.value)
     toastStore.success('Base de datos eliminada', 'La base de datos ha sido eliminada correctamente')
   } catch (error: any) {
-    toastStore.error('Error', error.response?.data?.message || 'No se pudo eliminar la base de datos')
+    const errorMessage = error?.response?.data?.message || error?.message || 'No se pudo eliminar la base de datos'
+    toastStore.error('Error', errorMessage)
+  } finally {
+    databaseToDelete.value = null
+    showDeleteDialog.value = false
   }
-  databaseToDelete.value = null
+}
+
+async function handleDeactivate() {
+  if (!databaseToDeactivate.value) return
+  try {
+    await databaseStore.deactivateDatabase(databaseToDeactivate.value)
+    toastStore.success('Base de datos desactivada', 'La base de datos ha sido desactivada correctamente')
+  } catch (error: any) {
+    const errorMessage = error?.response?.data?.message || error?.message || 'No se pudo desactivar la base de datos'
+    toastStore.error('Error', errorMessage)
+  } finally {
+    databaseToDeactivate.value = null
+    showDeactivateDialog.value = false
+  }
+}
+
+async function handleActivate() {
+  if (!databaseToActivate.value) return
+  try {
+    await databaseStore.activateDatabase(databaseToActivate.value)
+    toastStore.success('Base de datos activada', 'La base de datos ha sido activada correctamente')
+  } catch (error: any) {
+    const errorMessage = error?.response?.data?.message || error?.message || 'No se pudo activar la base de datos'
+    if (error?.response?.status === 409) {
+      toastStore.error('Límite alcanzado', errorMessage)
+    } else {
+      toastStore.error('Error', errorMessage)
+    }
+  } finally {
+    databaseToActivate.value = null
+    showActivateDialog.value = false
+  }
 }
 
 function handleDatabaseCreated() {

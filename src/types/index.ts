@@ -85,7 +85,7 @@ export interface CreateDatabaseRequestDto {
 
 export type DatabaseEngine = 'mysql' | 'postgresql' | 'mongodb' | 'sqlserver' | 'redis' | 'cassandra'
 
-export type DatabaseStatus = 'active' | 'creating' | 'stopped' | 'error' | 'deleting'
+export type DatabaseStatus = 'active' | 'inactive' | 'creating' | 'stopped' | 'error' | 'deleting'
 
 export interface Plan {
   id: string | number // PlanId del backend
