@@ -147,10 +147,26 @@ export const useDatabaseStore = defineStore('database', () => {
   }
 
   async function rotateCredentials(id: string): Promise<DatabaseCredentials> {
-    // El backend no tiene endpoint para rotar credenciales aún
-    // Por ahora, retornamos las credenciales actuales
-    // TODO: Implementar cuando el backend tenga este endpoint
-    return await getCredentials(id)
+    try {
+      // Llamar al endpoint de rotación de credenciales
+      const { database, password } = await databaseService.rotateCredentials(id)
+      
+      // Construir las credenciales con la contraseña recibida
+      const credentials: DatabaseCredentials = {
+        host: database.host || '168.119.182.243',
+        port: database.port || 3306,
+        username: database.username || database.name || '',
+        password: password, // Usar la contraseña recibida de la rotación
+        database: database.name || '',
+        firstView: true, // Marcar como primera vista para mostrar la contraseña
+        connectionString: database.connectionString || '',
+      }
+      
+      return credentials
+    } catch (error: any) {
+      console.error('Error rotating credentials:', error)
+      throw error
+    }
   }
 
   function getDatabasesByEngine(engine: DatabaseEngine | 'all'): Database[] {

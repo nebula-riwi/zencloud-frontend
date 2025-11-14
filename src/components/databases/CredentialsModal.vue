@@ -250,18 +250,24 @@ async function loadCredentials(dbId: string) {
 async function handleRotate() {
   if (!props.databaseId) return
   
-  if (!confirm('¿Estás seguro de que deseas rotar las credenciales? La contraseña actual dejará de funcionar.')) {
+  if (!confirm('¿Estás seguro de que deseas rotar las credenciales? El usuario y la contraseña actuales dejarán de funcionar. Se generarán nuevas credenciales automáticamente.')) {
     return
   }
   
   rotating.value = true
   try {
-    await databaseStore.rotateCredentials(props.databaseId)
-    await loadCredentials(props.databaseId)
-    toastStore.success('Credenciales rotadas', 'Las nuevas credenciales se han enviado por correo')
+    const newCredentials = await databaseStore.rotateCredentials(props.databaseId)
+    
+    // Actualizar las credenciales mostradas con las nuevas
+    credentials.value = newCredentials
+    isFirstView.value = true // Mostrar la contraseña después de rotar
+    showPassword.value = true
+    
+    toastStore.success('Credenciales rotadas', 'Las nuevas credenciales se han generado y actualizado automáticamente. También se han enviado por correo electrónico.')
     emit('credentials-rotated')
   } catch (error: any) {
-    toastStore.error('Error', 'No se pudieron rotar las credenciales')
+    const errorMessage = error?.message || 'No se pudieron rotar las credenciales'
+    toastStore.error('Error', errorMessage)
   } finally {
     rotating.value = false
   }

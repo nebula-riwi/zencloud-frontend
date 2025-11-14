@@ -191,6 +191,53 @@ export const databaseService = {
       connectionString: db.connectionString || '',
     }
   },
+
+  /**
+   * Rota las credenciales de una base de datos
+   * @param instanceId - ID de la instancia de base de datos
+   * @returns Base de datos actualizada y nueva contraseña
+   */
+  async rotateCredentials(instanceId: string): Promise<{ database: Database; password: string }> {
+    try {
+      interface RotateCredentialsResponse {
+        instanceId: string
+        databaseName: string
+        databaseUser: string
+        databasePassword: string
+        assignedPort: number
+        connectionString: string
+        status: string
+        engineName: string
+        createdAt: string
+        serverIpAddress?: string
+      }
+
+      const response = await apiClient.post<{ message: string; data: RotateCredentialsResponse }>(
+        `/api/DatabaseInstance/${instanceId}/rotate-credentials`
+      )
+
+      const dbData = response.data.data
+      const database = this.mapDatabaseResponse({
+        instanceId: dbData.instanceId,
+        databaseName: dbData.databaseName,
+        databaseUser: dbData.databaseUser,
+        assignedPort: dbData.assignedPort,
+        connectionString: dbData.connectionString,
+        status: dbData.status,
+        engineName: dbData.engineName,
+        createdAt: dbData.createdAt,
+        serverIpAddress: dbData.serverIpAddress,
+      })
+
+      return {
+        database,
+        password: dbData.databasePassword,
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Error al rotar credenciales'
+      throw new Error(errorMessage)
+    }
+  },
 }
 
 /**

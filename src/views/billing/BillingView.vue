@@ -171,6 +171,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { usePlanStore } from '@/stores/plan'
 import { useToastStore } from '@/stores/toast'
+import { paymentService } from '@/services/payment.service'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import Card from '@/components/ui/Card.vue'
 import CardHeader from '@/components/ui/CardHeader.vue'
@@ -206,20 +207,27 @@ const activePlanInfo = computed(() => ({
 }))
 
 function isPlanActive(plan: Plan): boolean {
-  if (plan.backendId !== undefined && activePlanInfo.value.backendId !== undefined) {
-    return plan.backendId === activePlanInfo.value.backendId
+  // Si no hay plan actual, ningún plan está activo
+  if (!currentPlan.value) {
+    return false
   }
 
-  if (plan.slug && activePlanInfo.value.slug) {
-    return plan.slug === activePlanInfo.value.slug
+  // Comparar por backendId primero (más confiable)
+  if (plan.backendId !== undefined && currentPlan.value.backendId !== undefined) {
+    return plan.backendId === currentPlan.value.backendId
   }
 
-  if (plan.id && activePlanInfo.value.id) {
-    return plan.id === activePlanInfo.value.id
+  // Comparar por slug
+  if (plan.slug && currentPlan.value.slug) {
+    return plan.slug === currentPlan.value.slug
   }
 
-  // Si todavía no tenemos información del backend, asumimos que el plan gratuito es el activo por defecto
-  return plan.slug === 'free'
+  // Comparar por id (puede ser string o number)
+  if (plan.id && currentPlan.value.id) {
+    return String(plan.id) === String(currentPlan.value.id)
+  }
+
+  return false
 }
 
 const payments = ref<PaymentHistory[]>([])
@@ -241,6 +249,26 @@ async function upgradeToPlan(plan: Plan) {
 }
 
 onMounted(async () => {
+  // Cargar planes y plan actual en paralelo
+  try {
+    await Promise.all([
+      planStore.fetchPlans(),
+      planStore.fetchPlan(), // Asegurar que el plan actual esté actualizado
+    ])
+  } catch (error) {
+    console.error('Error cargando planes:', error)
+  }
+
+  // Cargar historial de pagos
+  try {
+    const paymentHistory = await paymentService.fetchPaymentHistory()
+    payments.value = paymentHistory
+  } catch (error) {
+    console.error('Error cargando historial de pagos:', error)
+    payments.value = []
+  }
+
+  // Verificar si se regresó de un pago (aunque esto debería manejarse en PaymentResultView)
   const params = new URLSearchParams(window.location.search)
   const statusParam = params.get('status') || params.get('collection_status')
 
@@ -249,6 +277,9 @@ onMounted(async () => {
     // Actualizar el plan actual después de un pago exitoso
     try {
       await planStore.fetchPlan()
+      // Recargar historial de pagos después de un pago exitoso
+      const paymentHistory = await paymentService.fetchPaymentHistory()
+      payments.value = paymentHistory
     } catch (error) {
       console.error('Error actualizando plan después del pago:', error)
     }
@@ -258,12 +289,6 @@ onMounted(async () => {
 
   if (statusParam) {
     window.history.replaceState(null, '', window.location.pathname)
-  }
-
-  try {
-    await planStore.fetchPlans()
-  } catch (error) {
-    console.error('No se pudieron cargar los planes desde el backend')
   }
 })
 </script>

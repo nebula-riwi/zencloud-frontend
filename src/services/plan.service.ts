@@ -52,13 +52,28 @@ const PLAN_FEATURES: Record<string, string[]> = {
 }
 
 function mapPlanResponse(plan: PlanResponse): PlanWithMetadata {
-  const normalizedName = plan.planName ?? ''
-  const slug = normalizedName.toLowerCase()
+  // Normalizar el nombre del plan (puede venir como "Free", "free", "FREE", etc.)
+  const normalizedName = (plan.planName ?? '').trim()
+  const normalizedLower = normalizedName.toLowerCase()
+  
+  // Mapeo de nombres a slugs
+  const nameToSlug: Record<string, string> = {
+    'free': 'free',
+    'intermediate': 'intermediate',
+    'advanced': 'advanced',
+  }
+  
+  const slug = nameToSlug[normalizedLower] ?? normalizedLower
+  
+  // Mapeo de slugs a nombres en español
   const planNameMap: Record<string, string> = {
     free: 'Gratis',
     intermediate: 'Intermedio',
     advanced: 'Avanzado',
   }
+
+  // Obtener features - intentar con el nombre original primero, luego con el slug
+  const features = PLAN_FEATURES[normalizedName] ?? PLAN_FEATURES[slug] ?? []
 
   return {
     id: plan.planId,
@@ -69,7 +84,7 @@ function mapPlanResponse(plan: PlanResponse): PlanWithMetadata {
     currency: 'COP',
     maxDatabases: plan.maxDatabasesPerEngine,
     durationInDays: plan.durationInDays,
-    features: PLAN_FEATURES[normalizedName] ?? [],
+    features,
     description: plan.description ?? undefined,
     popular: slug === 'intermediate',
     isActive: plan.isActive,

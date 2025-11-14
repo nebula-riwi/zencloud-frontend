@@ -49,6 +49,18 @@ const routes: RouteRecordRaw[] = [
     name: 'Promo',
     component: () => import('@/views/PromoView.vue'),
   },
+  {
+    path: '/success',
+    name: 'PaymentSuccess',
+    component: () => import('@/views/billing/PaymentResultView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/failure',
+    name: 'PaymentFailure',
+    component: () => import('@/views/billing/PaymentResultView.vue'),
+    meta: { requiresAuth: true },
+  },
 ]
 
 const router = createRouter({
