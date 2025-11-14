@@ -118,7 +118,7 @@ async function createSubscription(planId: number): Promise<CreateSubscriptionRes
 
 async function fetchCurrentSubscription(): Promise<PlanWithMetadata | null> {
   try {
-    const response = await apiClient.get<PlanResponse | { message?: string }>('/api/Payments/current-subscription')
+    const response = await apiClient.get<PlanResponse & { startDate?: string; endDate?: string; autoRenewEnabled?: boolean } | { message?: string }>('/api/Payments/current-subscription')
     
     // Si la respuesta tiene un mensaje (no hay suscripción activa), devolver null
     if ('message' in response.data && response.data.message) {
@@ -127,7 +127,13 @@ async function fetchCurrentSubscription(): Promise<PlanWithMetadata | null> {
     
     // Si hay datos de plan, mapearlos
     if ('planId' in response.data) {
-      return mapPlanResponse(response.data as PlanResponse)
+      const mapped = mapPlanResponse(response.data as PlanResponse)
+      return {
+        ...mapped,
+        startDate: response.data.startDate,
+        endDate: response.data.endDate,
+        autoRenewEnabled: response.data.autoRenewEnabled ?? false,
+      }
     }
     
     return null
@@ -143,9 +149,15 @@ async function fetchCurrentSubscription(): Promise<PlanWithMetadata | null> {
   }
 }
 
+async function updateAutoRenew(enabled: boolean): Promise<boolean> {
+  const response = await apiClient.patch<{ autoRenewEnabled: boolean }>('/api/Payments/auto-renew', { enabled })
+  return response.data.autoRenewEnabled
+}
+
 export const planService = {
   fetchPlans,
   createSubscription,
   fetchCurrentSubscription,
+  updateAutoRenew,
 }
 

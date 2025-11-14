@@ -157,8 +157,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { usePlanStore } from '@/stores/plan'
 import { useDatabaseStore } from '@/stores/database'
@@ -175,7 +175,6 @@ import type { DatabaseEngine } from '@/types'
 import { storeToRefs } from 'pinia'
 
 const router = useRouter()
-const route = useRoute()
 const authStore = useAuthStore()
 const planStore = usePlanStore()
 const databaseStore = useDatabaseStore()
@@ -184,8 +183,6 @@ const databaseStore = useDatabaseStore()
 const { user } = storeToRefs(authStore)
 const { currentPlan } = storeToRefs(planStore)
 const { databases } = storeToRefs(databaseStore)
-// const { webhooks } = storeToRefs(webhookStore) // Deshabilitado temporalmente
-const webhooks = ref([]) // Mock data
 
 const engines = [
   {

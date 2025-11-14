@@ -37,7 +37,7 @@
       <div v-else-if="credentials" class="space-y-4">
         <!-- Debug info (temporal) -->
         <div v-if="false" class="text-xs text-white/50 p-2 bg-white/5 rounded mb-2">
-          Debug: host={{ credentials.host }}, port={{ credentials.port }}, user={{ credentials.username }}, db={{ credentials.database }}
+          Debug: host={{ credentials!.host }}, port={{ credentials!.port }}, user={{ credentials!.username }}, db={{ credentials!.database }}
         </div>
             <div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
         <div class="space-y-2">
@@ -45,14 +45,14 @@
           <div class="flex items-center gap-2">
                   <input
                     type="text"
-                    :value="credentials.host || ''"
+                    :value="credentials!.host || ''"
                     readonly
                     class="font-mono text-sm flex-1 w-full px-4 py-3 rounded-lg text-white transition-all focus:outline-none focus:ring-2 bg-white/5 border border-white/10 focus:ring-[#e78a53] focus:border-[#e78a53] cursor-default"
                   />
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    @click="copyToClipboard(credentials.host || '')"
+                    @click="copyToClipboard(credentials!.host || '')"
                     class="shrink-0"
                   >
               <Copy class="h-4 w-4" />
@@ -65,14 +65,14 @@
                 <div class="flex items-center gap-2">
                   <input
                     type="text"
-                    :value="credentials.port?.toString() || ''"
+                    :value="credentials!.port?.toString() || ''"
                     readonly
                     class="font-mono text-sm flex-1 w-full px-4 py-3 rounded-lg text-white transition-all focus:outline-none focus:ring-2 bg-white/5 border border-white/10 focus:ring-[#e78a53] focus:border-[#e78a53] cursor-default"
                   />
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    @click="copyToClipboard(credentials.port?.toString() || '')"
+                    @click="copyToClipboard(credentials!.port?.toString() || '')"
                     class="shrink-0"
                   >
                     <Copy class="h-4 w-4" />
@@ -86,14 +86,14 @@
           <div class="flex items-center gap-2">
               <input
                 type="text"
-                :value="credentials.username || ''"
+                :value="credentials!.username || ''"
                 readonly
                 class="font-mono text-sm flex-1 w-full px-4 py-3 rounded-lg text-white transition-all focus:outline-none focus:ring-2 bg-white/5 border border-white/10 focus:ring-[#e78a53] focus:border-[#e78a53] cursor-default"
               />
               <Button 
                 variant="outline" 
                 size="sm" 
-                @click="copyToClipboard(credentials.username || '')"
+                @click="copyToClipboard(credentials!.username || '')"
                 class="shrink-0"
               >
               <Copy class="h-4 w-4" />
@@ -106,7 +106,7 @@
           <div class="flex items-center gap-2">
             <input
               :type="showPassword ? 'text' : 'password'"
-              :value="credentials.password || ''"
+              :value="credentials!.password || ''"
               readonly
               class="font-mono text-sm flex-1 w-full px-4 py-3 rounded-lg text-white transition-all focus:outline-none focus:ring-2 bg-white/5 border border-white/10 focus:ring-[#e78a53] focus:border-[#e78a53] cursor-default"
             />
@@ -122,7 +122,7 @@
               <Button 
                 variant="outline" 
                 size="sm" 
-                @click="copyToClipboard(credentials.password || '')"
+                @click="copyToClipboard(credentials!.password || '')"
                 class="shrink-0"
               >
               <Copy class="h-4 w-4" />
@@ -135,14 +135,14 @@
             <div class="flex items-center gap-2">
               <input
                 type="text"
-                :value="credentials.database || ''"
+                :value="credentials!.database || ''"
                 readonly
                 class="font-mono text-sm flex-1 w-full px-4 py-3 rounded-lg text-white transition-all focus:outline-none focus:ring-2 bg-white/5 border border-white/10 focus:ring-[#e78a53] focus:border-[#e78a53] cursor-default"
               />
               <Button 
                 variant="outline" 
                 size="sm" 
-                @click="copyToClipboard(credentials.database || '')"
+                @click="copyToClipboard(credentials!.database || '')"
                 class="shrink-0"
               >
                 <Copy class="h-4 w-4" />

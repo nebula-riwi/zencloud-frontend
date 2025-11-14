@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch, nextTick, onUnmounted } from 'vue'
+import { onMounted, watch, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import '@n8n/chat/style.css'
@@ -45,6 +45,17 @@ function initializeChat() {
 }
 
 function setupMessageInterceptor() {
+  const ensureJsonHeaders = (headers?: HeadersInit): HeadersInit => {
+    if (headers instanceof Headers) {
+      headers.set('Content-Type', 'application/json')
+      return headers
+    }
+    if (Array.isArray(headers)) {
+      headers.push(['Content-Type', 'application/json'])
+      return headers
+    }
+    return { ...(headers ?? {}), 'Content-Type': 'application/json' }
+  }
   // Guardar referencias originales
   if (!originalFetch) {
     originalFetch = window.fetch
@@ -63,7 +74,6 @@ function setupMessageInterceptor() {
     // Si es una petición al webhook del chat
     if (typeof url === 'string' && url.includes('n8n.nebula.andrescortes.dev/webhook') && token.value) {
       try {
-        // Si hay body, parsearlo y agregar/actualizar metadata
         if (options.body) {
           const body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body
           if (body && typeof body === 'object') {
@@ -74,6 +84,7 @@ function setupMessageInterceptor() {
               source: 'web_platform'
             }
             options.body = JSON.stringify(body)
+            options.headers = ensureJsonHeaders(options.headers)
           }
         } else {
           // Si no hay body, crear uno con metadata
@@ -84,12 +95,7 @@ function setupMessageInterceptor() {
               source: 'web_platform'
             }
           })
-          if (!options.headers) {
-            options.headers = {}
-          }
-          if (typeof options.headers === 'object' && !Array.isArray(options.headers)) {
-            options.headers['Content-Type'] = 'application/json'
-          }
+          options.headers = ensureJsonHeaders(options.headers)
         }
       } catch (e) {
         console.error('ChatWidget: Error interceptando fetch:', e)
@@ -100,12 +106,15 @@ function setupMessageInterceptor() {
   }
   
   // Interceptar XMLHttpRequest también
-  XMLHttpRequest.prototype.open = function(method: string, url: string | URL, ...rest: any[]) {
-    ;(this as any)._url = url.toString()
-    return originalXHROpen!.apply(this, [method, url, ...rest])
+  XMLHttpRequest.prototype.open = function (...args: any[]) {
+    const [, url] = args
+    if (url) {
+      ;(this as any)._url = typeof url === 'string' ? url : url.toString()
+    }
+    return originalXHROpen!.apply(this, args as any)
   }
   
-  XMLHttpRequest.prototype.send = function(body?: Document | XMLHttpRequestInit | null) {
+  XMLHttpRequest.prototype.send = function(body?: Document | XMLHttpRequestBodyInit | null) {
     const url = (this as any)._url
     if (url && url.includes('n8n.nebula.andrescortes.dev/webhook') && token.value) {
       try {
@@ -128,9 +137,7 @@ function setupMessageInterceptor() {
               source: 'web_platform'
             }
           })
-          if (!this.getRequestHeader('Content-Type')) {
-            this.setRequestHeader('Content-Type', 'application/json')
-          }
+          this.setRequestHeader('Content-Type', 'application/json')
         }
       } catch (e) {
         console.error('ChatWidget: Error interceptando XMLHttpRequest:', e)
@@ -271,69 +278,34 @@ onUnmounted(() => {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Texto negro en los mensajes del usuario */
-#n8n-chat-container [class*="user"],
-[id*="n8n-chat"] [class*="user"],
-#n8n-chat-container [class*="message"][class*="user"],
-[id*="n8n-chat"] [class*="message"][class*="user"],
+#n8n-chat-container,
+[id*="n8n-chat"] {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: 0.015em;
+}
+
 #n8n-chat-container [class*="user-message"],
 [id*="n8n-chat"] [class*="user-message"] {
-  color: #000000 !important;
+  color: #0f1014 !important;
+  font-weight: 600;
 }
 
-#n8n-chat-container [class*="user"] *,
-[id*="n8n-chat"] [class*="user"] *,
-#n8n-chat-container [class*="message"][class*="user"] *,
-[id*="n8n-chat"] [class*="message"][class*="user"] * {
-  color: #000000 !important;
-}
-
-/* Texto negro en los mensajes del bot/chatbot */
-#n8n-chat-container [class*="bot"],
-[id*="n8n-chat"] [class*="bot"],
-#n8n-chat-container [class*="message"]:not([class*="user"]),
-[id*="n8n-chat"] [class*="message"]:not([class*="user"]),
 #n8n-chat-container [class*="bot-message"],
 [id*="n8n-chat"] [class*="bot-message"] {
-  color: #000000 !important;
+  color: rgba(245, 247, 250, 0.95) !important;
 }
 
-#n8n-chat-container [class*="bot"] *,
-[id*="n8n-chat"] [class*="bot"] *,
-#n8n-chat-container [class*="message"]:not([class*="user"]) *,
-[id*="n8n-chat"] [class*="message"]:not([class*="user"]) * {
-  color: #000000 !important;
-}
-
-/* Texto negro en los inputs y textareas */
 #n8n-chat-container input,
 #n8n-chat-container textarea,
 [id*="n8n-chat"] input,
-[id*="n8n-chat"] textarea,
-#n8n-chat-container [class*="input"],
-[id*="n8n-chat"] [class*="input"],
-#n8n-chat-container [class*="textarea"],
-[id*="n8n-chat"] [class*="textarea"] {
-  color: #000000 !important;
+[id*="n8n-chat"] textarea {
+  color: #0f1014 !important;
 }
 
 #n8n-chat-container input::placeholder,
 #n8n-chat-container textarea::placeholder,
 [id*="n8n-chat"] input::placeholder,
 [id*="n8n-chat"] textarea::placeholder {
-  color: rgba(0, 0, 0, 0.5) !important;
-}
-
-/* Asegurar que el botón tenga el tamaño correcto y sombra */
-#n8n-chat-container button,
-[id*="n8n-chat"] button {
-  box-shadow: 0 4px 20px rgba(231, 138, 83, 0.4), 0 0 40px rgba(231, 138, 83, 0.2) !important;
-  transition: all 0.3s ease !important;
-}
-
-#n8n-chat-container button:hover,
-[id*="n8n-chat"] button:hover {
-  transform: scale(1.1) !important;
-  box-shadow: 0 6px 30px rgba(231, 138, 83, 0.6), 0 0 60px rgba(231, 138, 83, 0.3) !important;
+  color: rgba(15, 16, 20, 0.5) !important;
 }
 </style>

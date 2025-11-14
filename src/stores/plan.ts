@@ -119,6 +119,14 @@ export const usePlanStore = defineStore('plan', () => {
     return { status: 'unknown' }
   }
 
+  async function toggleAutoRenew(enabled: boolean): Promise<boolean> {
+    const result = await planService.updateAutoRenew(enabled)
+    if (currentPlan.value) {
+      currentPlan.value = { ...currentPlan.value, autoRenewEnabled: result }
+    }
+    return result
+  }
+
   function updateQuota(engine: string, used: number) {
     const quota = quotasByEngine.value.find((q) => q.engine === engine)
     if (quota) {
@@ -155,6 +163,7 @@ export const usePlanStore = defineStore('plan', () => {
     plans,
     loadingPlans,
     fetchPlans,
+    toggleAutoRenew,
   }
 })
 

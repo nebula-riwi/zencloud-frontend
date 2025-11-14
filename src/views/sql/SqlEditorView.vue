@@ -44,6 +44,12 @@
             </CardHeader>
             <CardContent class="relative z-10 pt-6 overflow-y-auto" style="max-height: calc(100vh - 20rem);">
               <div class="space-y-4">
+                <p v-if="databases.length > sqlDatabases.length" class="text-xs text-white/45 px-3">
+                  Mostrando solo motores SQL compatibles (MySQL y PostgreSQL).
+                </p>
+                <div v-if="sqlDatabases.length === 0" class="text-center text-white/50 text-sm py-8 px-3">
+                  No tienes bases de datos SQL activas todavía.
+                </div>
                 <!-- Databases List -->
               <div class="space-y-3">
                 <div v-for="engine in groupedDatabases" :key="engine" class="space-y-2">
@@ -162,6 +168,7 @@
                     <Button 
                       @click="executeQuery" 
                       :loading="isRunning"
+                      :disabled="!selectedDb || !queryText.trim()"
                       class="!bg-gradient-to-r !from-[#e78a53] !to-[#f59a63] hover:!from-[#f59a63] hover:!to-[#e78a53] !text-white !shadow-lg !shadow-[#e78a53]/30 hover:!shadow-[#e78a53]/50 !border-0"
                     >
                       Ejecutar
@@ -199,7 +206,10 @@
                           <AlertCircle class="h-4 w-4" />
                           <span class="font-semibold">Error</span>
                         </div>
-                        {{ results.error }}
+                        <p class="mb-2">{{ results.error }}</p>
+                        <p class="text-xs text-white/70">
+                          Puedes ejecutar consultas individuales de lectura o mantenimiento (SELECT, INSERT, UPDATE, DELETE, SHOW, DESCRIBE, EXPLAIN, CREATE, ALTER, DROP) sin múltiples sentencias ni comentarios peligrosos.
+                        </p>
                       </div>
                       <div v-else-if="results.data" class="space-y-3">
                         <div v-if="results.affectedRows !== undefined" class="text-sm text-white/60 mb-3 p-2 rounded-lg bg-white/5">
@@ -230,6 +240,44 @@
               </CardContent>
             </Card>
           </Transition>
+
+          <Transition name="fade-up" appear :delay="400">
+            <Card class="border-white/10 overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/5 via-transparent to-transparent opacity-50"></div>
+              <CardHeader class="relative z-10 border-b border-white/10 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-1 h-8 bg-gradient-to-b from-[#e78a53] to-transparent rounded-full"></div>
+                  <CardTitle class="text-xl text-white" style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);">Historial de consultas</CardTitle>
+                </div>
+                <Badge v-if="history.length" variant="outline" class="border-white/20 text-white/70">
+                  {{ history.length }} registros
+                </Badge>
+              </CardHeader>
+              <CardContent class="relative z-10 max-h-64 overflow-y-auto space-y-3">
+                <div v-if="history.length === 0" class="text-white/60 text-sm py-6 text-center">
+                  No hay consultas registradas aún para esta base de datos.
+                </div>
+                <div
+                  v-for="item in history"
+                  :key="item.id"
+                  class="border border-white/10 rounded-lg p-3 bg-black/30 backdrop-blur-sm flex flex-col gap-1"
+                >
+                  <div class="flex items-center justify-between text-xs text-white/50">
+                    <span>{{ formatHistoryDate(item.executedAt) }}</span>
+                    <Badge :variant="item.success ? 'success' : 'warning'">
+                      {{ item.success ? 'Éxito' : 'Error' }}
+                    </Badge>
+                  </div>
+                  <code class="text-white text-sm font-mono whitespace-pre-wrap break-words">{{ item.query }}</code>
+                  <div class="text-xs text-white/50">
+                    <span>{{ item.rowCount !== undefined ? `${item.rowCount} filas` : 'Sin resultados' }}</span>
+                    <span v-if="item.executionTimeMs"> • {{ Number(item.executionTimeMs).toFixed(2) }} ms</span>
+                    <span v-if="item.error" class="text-red-400 font-semibold"> • {{ item.error }}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Transition>
         </div>
       </div>
     </div>
@@ -246,25 +294,29 @@ import CardHeader from '@/components/ui/CardHeader.vue'
 import CardTitle from '@/components/ui/CardTitle.vue'
 import CardContent from '@/components/ui/CardContent.vue'
 import Button from '@/components/ui/Button.vue'
+import Badge from '@/components/ui/Badge.vue'
 import { Database, Terminal, ChevronDown, AlertCircle, RefreshCw } from 'lucide-vue-next'
-import type { Database as DatabaseType } from '@/types'
+import type { Database as DatabaseType, DatabaseEngine } from '@/types'
 import { storeToRefs } from 'pinia'
 
 const databaseStore = useDatabaseStore()
 const sqlStore = useSqlStore()
 
 const { databases } = storeToRefs(databaseStore)
-const { selectedDb, queryText, isRunning, results, tables, loadingTables } = storeToRefs(sqlStore)
+const { selectedDb, queryText, isRunning, results, tables, loadingTables, history } = storeToRefs(sqlStore)
 
 const expandedEngines = ref<string[]>([])
+const SQL_ENGINES: DatabaseEngine[] = ['mysql', 'postgresql']
+
+const sqlDatabases = computed(() => databases.value.filter((db) => SQL_ENGINES.includes(db.engine)))
 
 const groupedDatabases = computed(() => {
-  const engines = new Set(databases.value.map((db) => db.engine))
+  const engines = new Set(sqlDatabases.value.map((db) => db.engine))
   return Array.from(engines)
 })
 
 function getDatabasesByEngine(engine: string) {
-  return databases.value.filter((db) => db.engine === engine)
+  return sqlDatabases.value.filter((db) => db.engine === engine)
 }
 
 function toggleEngine(engine: string) {
@@ -277,7 +329,7 @@ function toggleEngine(engine: string) {
 }
 
 async function selectDatabase(db: DatabaseType) {
-  sqlStore.selectDatabase(db)
+  await sqlStore.selectDatabase(db)
   // Always load tables when database is selected
   if (db) {
     await loadTables()
@@ -300,15 +352,15 @@ function insertTableName(tableName: string) {
   }
 }
 
-watch(selectedDb, (db) => {
+watch(selectedDb, async (db) => {
   if (db && !expandedEngines.value.includes(db.engine)) {
     expandedEngines.value.push(db.engine)
   }
-  // Load tables when database changes
   if (db) {
-    loadTables()
+    await loadTables()
   } else {
     sqlStore.tables = []
+    history.value = []
   }
 })
 
@@ -325,20 +377,22 @@ function clear() {
   sqlStore.clear()
 }
 
+function formatHistoryDate(timestamp: string) {
+  const date = new Date(timestamp)
+  return date.toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })
+}
+
 onMounted(async () => {
-  // Load mock data - Backend will be implemented later
   try {
     await databaseStore.fetchDatabases()
-    sqlStore.loadSelectedDatabase(databases.value)
+    await sqlStore.loadSelectedDatabase(databases.value)
     if (databases.value.length > 0) {
       expandedEngines.value = groupedDatabases.value
     }
-    // Always load tables if a database is selected
     if (selectedDb.value) {
       await sqlStore.fetchTables(selectedDb.value)
     }
   } catch (error) {
-    // Silently fail - using mock data
     console.log('Using mock data - backend not available yet')
   }
 })

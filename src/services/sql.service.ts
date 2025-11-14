@@ -1,5 +1,5 @@
 import apiClient from './api'
-import type { SqlResult, QueryResultResponse, DatabaseTable } from '@/types'
+import type { SqlResult, QueryResultResponse, DatabaseTable, QueryHistoryItem } from '@/types'
 
 /**
  * Servicio para ejecutar queries SQL y obtener información de bases de datos
@@ -32,7 +32,12 @@ export const sqlService = {
         affectedRows: result.affectedRows,
       }
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.response?.data?.errorMessage || error.message || 'Error al ejecutar query'
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        'Error al ejecutar query'
       
       return {
         success: false,
@@ -72,6 +77,19 @@ export const sqlService = {
       console.error('Error getting tables:', error)
       const errorMessage = error.response?.data?.message || error.message || 'Error al obtener tablas'
       throw new Error(errorMessage)
+    }
+  },
+
+  async getHistory(instanceId: string, limit = 20): Promise<QueryHistoryItem[]> {
+    try {
+      const response = await apiClient.get<{ data: QueryHistoryItem[] }>(
+        `/api/databases/${instanceId}/DatabaseManager/history`,
+        { params: { limit } }
+      )
+      return response.data.data
+    } catch (error: any) {
+      console.error('Error getting query history:', error)
+      throw new Error(error.response?.data?.error || 'No se pudo obtener el historial de consultas')
     }
   },
 

@@ -137,6 +137,18 @@ export const databaseService = {
     }
   },
 
+  async exportDatabase(instanceId: string): Promise<Blob> {
+    try {
+      const response = await apiClient.get(`/api/databases/${instanceId}/DatabaseManager/export`, {
+        responseType: 'blob',
+      })
+      return response.data
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || error.message || 'Error al exportar la base de datos'
+      throw new Error(errorMessage)
+    }
+  },
+
   /**
    * Mapea la respuesta del backend al formato del frontend
    * @param db - Respuesta del backend

@@ -177,7 +177,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Zap, LayoutDashboard, Sparkles, ArrowRight } from 'lucide-vue-next'
 import { ENGINE_FALLBACKS } from '@/composables/useImageFallback'
