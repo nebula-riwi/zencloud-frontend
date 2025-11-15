@@ -385,14 +385,20 @@ function localizeChatTexts() {
 [id*="n8n-chat"] .n8n-chat__message--bot,
 #n8n-chat-container .n8n-chat__message--bot *,
 [id*="n8n-chat"] .n8n-chat__message--bot * {
-  color: rgba(245, 247, 250, 0.95) !important;
+  color: #0f1014 !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
 }
 
 #n8n-chat-container [class*="bot-message"],
 [id*="n8n-chat"] [class*="bot-message"],
 #n8n-chat-container [class*="bot-message"] *,
 [id*="n8n-chat"] [class*="bot-message"] * {
-  color: rgba(245, 247, 250, 0.95) !important;
+  color: #0f1014 !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
 }
 
 #n8n-chat-container input,
