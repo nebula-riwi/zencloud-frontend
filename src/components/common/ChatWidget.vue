@@ -192,36 +192,59 @@ onUnmounted(() => {
 })
 
 function localizeChatTexts() {
-  let attempts = 0
-  const interval = setInterval(() => {
-    attempts++
+  const textReplacements: Array<{ pattern: RegExp; replacement: string }> = [
+    { pattern: /hi there!? 👋?/i, replacement: '¡Hola! 👋' },
+    { pattern: /start a chat\.? we're here to help you 24\/7\./i, replacement: 'Empecemos, estamos aquí para ayudarte 24/7.' },
+    { pattern: /my name is (nathan|.*)\.? how can i assist you today\?/i, replacement: 'Soy ZenCloud, ¿cómo puedo ayudarte hoy?' },
+    { pattern: /type your question\.\./i, replacement: 'Escribe tu pregunta...' },
+  ]
+
+  const translateNodes = (root: Element) => {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null)
+    let node: Node | null = walker.nextNode()
+    while (node) {
+      const original = node.textContent ?? ''
+      const updated = textReplacements.reduce((text, { pattern, replacement }) => {
+        return pattern.test(text) ? text.replace(pattern, replacement) : text
+      }, original)
+
+      if (original !== updated) {
+        node.textContent = updated
+      }
+      node = walker.nextNode()
+    }
+  }
+
+  const applyTranslations = (): boolean => {
     const container = document.querySelector('#n8n-chat-container, [id*="n8n-chat"]')
-    if (!container) {
-      if (attempts > 10) clearInterval(interval)
-      return
-    }
+    if (!container) return false
 
-    const headerTitle = container.querySelector('h2')
-    if (headerTitle) {
-      headerTitle.textContent = '¡Hola!'
-    }
+    translateNodes(container as Element)
 
-    const subtitle = container.querySelector('p')
-    if (subtitle && /start a chat/i.test(subtitle.textContent || '')) {
-      subtitle.textContent = 'Empecemos, estamos aquí para ayudarte 24/7.'
-    }
-
-    const input = container.querySelector('input[type="text"], textarea')
+    const input =
+      container.querySelector('textarea') ||
+      container.querySelector('input[type="text"]')
     if (input) {
       input.setAttribute('placeholder', 'Escribe tu pregunta...')
+      ;(input as HTMLTextAreaElement).placeholder = 'Escribe tu pregunta...'
+      input.setAttribute('data-placeholder', 'Escribe tu pregunta...')
     }
 
-    if (headerTitle && subtitle && input) {
-      clearInterval(interval)
-    } else if (attempts > 10) {
-      clearInterval(interval)
+    return true
+  }
+
+  if (applyTranslations()) {
+    return
+  }
+
+  const observer = new MutationObserver(() => {
+    if (applyTranslations()) {
+      observer.disconnect()
     }
-  }, 500)
+  })
+
+  observer.observe(document.body, { childList: true, subtree: true })
+  window.setTimeout(() => observer.disconnect(), 10000)
 }
 </script>
 
@@ -280,7 +303,7 @@ function localizeChatTexts() {
   
   /* Mensajes del bot - Fondo oscuro */
   --chat--message--bot--background: rgba(255, 255, 255, 0.05);
-  --chat--message--bot--color: rgba(255, 255, 255, 0.9);
+  --chat--message--bot--color: rgba(0, 0, 0, 0.9);
   --chat--message--bot--border: 1px solid rgba(231, 138, 83, 0.2);
   
   /* Mensajes del usuario - Naranja */
@@ -318,24 +341,57 @@ function localizeChatTexts() {
   letter-spacing: 0.015em;
 }
 
+#n8n-chat-container input,
+#n8n-chat-container textarea,
+[id*="n8n-chat"] input,
+[id*="n8n-chat"] textarea {
+  color: #0f1014 !important;
+}
+
+#n8n-chat-container input::placeholder,
+#n8n-chat-container textarea::placeholder,
+[id*="n8n-chat"] input::placeholder,
+[id*="n8n-chat"] textarea::placeholder,
+#n8n-chat-container input[data-placeholder],
+#n8n-chat-container textarea[data-placeholder],
+[id*="n8n-chat"] input[data-placeholder],
+[id*="n8n-chat"] textarea[data-placeholder] {
+  content: attr(data-placeholder);
+  color: rgba(15, 16, 20, 0.5) !important;
+}
+
 #n8n-chat-container [class*="user-message"],
-[id*="n8n-chat"] [class*="user-message"] {
+[id*="n8n-chat"] [class*="user-message"],
+#n8n-chat-container [class*="user-message"] *,
+[id*="n8n-chat"] [class*="user-message"] * {
   color: #0f1014 !important;
   font-weight: 600;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
 }
 
 #n8n-chat-container .n8n-chat__message--user,
-[id*="n8n-chat"] .n8n-chat__message--user {
+[id*="n8n-chat"] .n8n-chat__message--user,
+#n8n-chat-container .n8n-chat__message--user *,
+[id*="n8n-chat"] .n8n-chat__message--user * {
   color: #0f1014 !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
 }
 
 #n8n-chat-container .n8n-chat__message--bot,
-[id*="n8n-chat"] .n8n-chat__message--bot {
+[id*="n8n-chat"] .n8n-chat__message--bot,
+#n8n-chat-container .n8n-chat__message--bot *,
+[id*="n8n-chat"] .n8n-chat__message--bot * {
   color: rgba(245, 247, 250, 0.95) !important;
 }
 
 #n8n-chat-container [class*="bot-message"],
-[id*="n8n-chat"] [class*="bot-message"] {
+[id*="n8n-chat"] [class*="bot-message"],
+#n8n-chat-container [class*="bot-message"] *,
+[id*="n8n-chat"] [class*="bot-message"] * {
   color: rgba(245, 247, 250, 0.95) !important;
 }
 
