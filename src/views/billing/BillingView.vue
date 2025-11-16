@@ -61,7 +61,7 @@
               </div>
             </CardHeader>
             <CardContent class="space-y-4 text-white/80">
-              <div class="flex flex-wrap items-center gap-4">
+              <div class="flex flex-wrap items-center justify-center gap-4 px-4">
                 <Badge variant="outline" class="border-white/20 text-white/90">
                   {{ isPaidPlan ? 'Plan de pago' : 'Plan gratuito' }}
                 </Badge>
@@ -83,10 +83,10 @@
                   <div class="flex items-center justify-between mb-2">
                     <p class="text-sm font-semibold text-white/90">Uso de Bases de Datos</p>
                     <span class="text-xs text-white/60">
-                      {{ usageStats.totalActive }} / {{ usageStats.totalLimit ?? '∞' }} activas
+                      {{ usageStats.totalActive }} / {{ displayTotalLimit }} activas
                     </span>
                   </div>
-                  <div class="flex items-center gap-2">
+                  <div v-if="usageStats.totalLimit !== null" class="flex items-center gap-2">
                     <div class="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
                       <div 
                         class="h-full bg-gradient-to-r from-[#e78a53] to-[#f59a63] rounded-full transition-all duration-500" 
@@ -96,6 +96,9 @@
                     <span class="text-xs text-white/50 font-medium min-w-[3rem] text-right">
                       {{ usageStats.globalPercentage.toFixed(1) }}%
                     </span>
+                  </div>
+                  <div v-else class="text-xs text-white/50 mt-2">
+                    Límite por motor: {{ currentPlan?.maxDatabases || 0 }} bases
                   </div>
                 </div>
                 
@@ -355,6 +358,16 @@ const isPaidPlan = computed(() => (currentPlan.value?.price ?? 0) > 0)
 const autoRenewState = ref(false)
 const autoRenewLoading = ref(false)
 
+const displayTotalLimit = computed(() => {
+  if (!usageStats.value) return '∞'
+  // Si el límite es null, significa que es ilimitado globalmente pero con límite por motor
+  // Para plan intermedio, mostrar el límite por motor como referencia
+  if (usageStats.value.totalLimit === null) {
+    return `∞ (${currentPlan.value?.maxDatabases || 0} por motor)`
+  }
+  return usageStats.value.totalLimit
+})
+
 watch(
   currentPlan,
   (plan) => {
@@ -422,11 +435,34 @@ const payments = ref<PaymentHistory[]>([])
 
 async function upgradeToPlan(plan: Plan) {
   try {
+    // Detectar si el navegador es Edge o Brave que pueden tener Tracking Prevention activo
+    const isEdge = navigator.userAgent.includes('Edg/')
+    const isBrave = (navigator as any).brave?.isBrave === true
+    
+    // Mostrar advertencia si es Edge o Brave
+    if (isEdge || isBrave) {
+      const shouldContinue = confirm(
+        '⚠️ IMPORTANTE: Si usas Edge o Brave con protección de rastreo activa, el pago puede fallar.\n\n' +
+        'Recomendaciones:\n' +
+        '• Desactiva temporalmente "Tracking Prevention" en Edge (Configuración > Privacidad > Tracking Prevention)\n' +
+        '• O usa otro navegador como Chrome/Firefox para el pago\n' +
+        '• Asegúrate de que no hay bloqueadores de anuncios activos\n\n' +
+        '¿Deseas continuar de todos modos?'
+      )
+      
+      if (!shouldContinue) {
+        return
+      }
+    }
+    
     const identifier = plan.backendId ?? plan.id
     const preference = await planStore.upgradePlan(identifier)
     const redirectUrl = preference.payment_url || preference.checkout_url || preference.init_point
     if (redirectUrl) {
-      window.location.href = redirectUrl
+      // Agregar un pequeño delay para mostrar la advertencia antes de redirigir
+      setTimeout(() => {
+        window.location.href = redirectUrl
+      }, 500)
     } else {
       throw new Error('No se recibió una URL de pago')
     }

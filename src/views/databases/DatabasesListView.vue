@@ -45,25 +45,46 @@
         <Card v-if="currentPlan" class="relative z-10 border-white/10 overflow-hidden">
           <div class="absolute inset-0 bg-gradient-to-r from-[#e78a53]/5 via-transparent to-transparent"></div>
           <CardContent class="pt-6 relative z-10">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="flex items-center gap-2 mb-2">
-                  <div class="w-2 h-2 rounded-full bg-[#e78a53] animate-pulse"></div>
-                  <p class="text-sm font-semibold text-white/90 uppercase tracking-wider">Plan {{ currentPlan.name }}</p>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="w-2 h-2 rounded-full bg-[#e78a53] animate-pulse"></div>
+                    <p class="text-sm font-semibold text-white/90 uppercase tracking-wider">Plan {{ currentPlan.name }}</p>
+                  </div>
+                  <div v-if="selectedEngine === 'all'" class="space-y-1.5">
+                    <p class="text-xs text-white/70 font-medium">
+                      <span class="font-semibold text-white/90">{{ totalActive }}</span> bases activas / 
+                      <span class="font-semibold text-white/90">{{ totalCreated }}</span> creadas
+                    </p>
+                    <p class="text-xs text-white/50">
+                      Disponibles para crear: <span class="font-semibold text-white/70">{{ availableToCreate }}</span>
+                    </p>
+                  </div>
+                  <div v-else class="space-y-1.5">
+                    <p class="text-xs text-white/70 font-medium">
+                      <span class="font-semibold text-white/90 capitalize">{{ selectedEngine }}</span>: 
+                      <span class="font-semibold text-white/90">{{ usedCount }}</span> activas / 
+                      <span class="font-semibold text-white/90">{{ createdCount }}</span> creadas
+                    </p>
+                    <p class="text-xs text-white/60">
+                      {{ usedCount }}/{{ currentPlan.maxDatabases }} por motor
+                    </p>
+                    <p class="text-xs text-white/50">
+                      Disponibles: <span class="font-semibold text-white/70">{{ currentPlan.maxDatabases - usedCount }}</span>
+                    </p>
+                  </div>
                 </div>
-                <p class="text-xs text-white/60 font-medium">
-                  {{ usedCount }}/{{ currentPlan.maxDatabases }} bases de datos por motor
-                </p>
-                <div class="mt-3 h-2 bg-white/5 rounded-full overflow-hidden max-w-md">
-                  <div
-                    class="h-full bg-gradient-to-r from-[#e78a53] to-[#f59a63] rounded-full transition-all duration-500"
-                    :style="{ width: `${(usedCount / currentPlan.maxDatabases) * 100}%` }"
-                  ></div>
-                </div>
+                <Badge v-if="!canCreate && selectedEngine !== 'all'" variant="warning" class="text-xs px-3 py-1.5">
+                  Límite alcanzado
+                </Badge>
               </div>
-              <Badge v-if="!canCreate" variant="warning" class="text-xs px-3 py-1.5">
-                Límite alcanzado
-              </Badge>
+              <div v-if="selectedEngine !== 'all'" class="h-2 bg-white/5 rounded-full overflow-hidden max-w-md">
+                <div
+                  class="h-full bg-gradient-to-r from-[#e78a53] to-[#f59a63] rounded-full transition-all duration-500"
+                  :style="{ width: `${Math.min((usedCount / currentPlan.maxDatabases) * 100, 100)}%` }"
+                ></div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -333,12 +354,43 @@ const filteredDatabases = computed(() => {
   return databases.value.filter((db) => db.engine === selectedEngine.value)
 })
 
+const totalActive = computed(() => {
+  return databases.value.filter((db) => db.status === 'active').length
+})
+
+const totalCreated = computed(() => {
+  return databases.value.length
+})
+
+const availableToCreate = computed(() => {
+  if (!currentPlan.value) return '∞'
+  const maxPerEngine = currentPlan.value.maxDatabases || 0
+  // Para planes pagos, el límite global puede ser ilimitado
+  // Para plan gratuito, el límite global es 5
+  const isFreePlan = (currentPlan.value.price ?? 0) === 0
+  const globalLimit = isFreePlan ? 5 : Infinity
+  
+  if (globalLimit === Infinity) {
+    return 'Ilimitadas'
+  }
+  
+  const available = Math.max(0, globalLimit - totalActive.value)
+  return available
+})
+
 const usedCount = computed(() => {
   const filtered = selectedEngine.value === 'all' 
     ? databases.value 
     : databases.value.filter((db) => db.engine === selectedEngine.value)
   // Contar solo bases activas
   return filtered.filter((db) => db.status === 'active').length
+})
+
+const createdCount = computed(() => {
+  const filtered = selectedEngine.value === 'all' 
+    ? databases.value 
+    : databases.value.filter((db) => db.engine === selectedEngine.value)
+  return filtered.length
 })
 
 const canCreate = computed(() => {
