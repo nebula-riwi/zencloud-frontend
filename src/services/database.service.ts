@@ -233,7 +233,7 @@ export const databaseService = {
       status: statusMap[db.status] || 'active',
       createdAt: db.createdAt,
       host: host || db.serverIpAddress || '168.119.182.243',
-      port: port || db.assignedPort || 3306,
+      port: port || db.assignedPort || (engineName === 'mysql' ? 3307 : (engineName === 'postgresql' ? 5432 : 3306)),
       username: username || db.databaseUser || '',
       connectionString: db.connectionString || '',
     }
