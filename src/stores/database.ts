@@ -147,7 +147,7 @@ export const useDatabaseStore = defineStore('database', () => {
         host = response.host || '168.119.182.243'
       }
       if (!port || port === 0) {
-        port = response.port || 3306
+        port = response.port || response.assignedPort || (response.engine === 'mysql' ? 3307 : (response.engine === 'postgresql' ? 5433 : 3307))
       }
       if (!username || username.trim() === '') {
         username = response.username || ''
@@ -161,7 +161,7 @@ export const useDatabaseStore = defineStore('database', () => {
         host = '168.119.182.243'
       }
       if (!port || port === 0) {
-        port = 3306
+        port = 3307 // Default MySQL externo
       }
       if (!username || username.trim() === '') {
         username = 'N/A'
@@ -170,11 +170,20 @@ export const useDatabaseStore = defineStore('database', () => {
         databaseName = 'N/A'
       }
       
+      // Parsear contraseña del connectionString si está disponible
+      let password = ''
+      if (response.connectionString) {
+        const passwordMatch = response.connectionString.match(/[Pp]assword=([^;]+)/)
+        if (passwordMatch && passwordMatch[1]) {
+          password = passwordMatch[1]
+        }
+      }
+      
       const credentials = {
         host: host.trim(),
         port: port,
         username: username.trim(),
-        password: '***La contraseña se envió por correo electrónico***', // El backend no expone la contraseña por seguridad
+        password: password || '', // Parsear contraseña del connectionString
         database: databaseName.trim(),
         firstView: false,
         connectionString: response.connectionString || '',

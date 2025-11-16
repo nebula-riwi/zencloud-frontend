@@ -312,8 +312,43 @@ const fallbackPlans: Plan[] = [
 ]
 
 const displayPlans = computed<Plan[]>(() => {
-  if (plans.value.length > 0) return plans.value
-  return fallbackPlans
+  let availablePlans = plans.value.length > 0 ? plans.value : fallbackPlans
+  
+  // Si no hay plan actual, mostrar todos los planes
+  if (!currentPlan.value) {
+    return availablePlans
+  }
+  
+  const currentPlanPrice = currentPlan.value.price ?? 0
+  const isCurrentPlanPaid = currentPlanPrice > 0
+  
+  // Si tiene plan de pago, no mostrar el plan gratuito
+  if (isCurrentPlanPaid) {
+    availablePlans = availablePlans.filter(plan => (plan.price ?? 0) > 0)
+  }
+  
+  // Encontrar el plan más caro disponible
+  const maxPlanPrice = availablePlans.reduce((max, plan) => {
+    const planPrice = plan.price ?? 0
+    return planPrice > max ? planPrice : max
+  }, 0)
+  
+  // Si tiene el plan más caro (mejor plan), no mostrar planes inferiores
+  if (currentPlanPrice >= maxPlanPrice && maxPlanPrice > 0) {
+    // Mostrar solo el plan actual (ya que es el mejor)
+    return availablePlans.filter(plan => {
+      const planId = plan.backendId ?? plan.id
+      const currentId = currentPlan.value?.backendId ?? currentPlan.value?.id
+      return String(planId) === String(currentId)
+    })
+  }
+  
+  // Filtrar planes inferiores al actual (no permitir downgrade)
+  return availablePlans.filter(plan => {
+    const planPrice = plan.price ?? 0
+    // Permitir solo planes iguales o superiores al actual
+    return planPrice >= currentPlanPrice
+  })
 })
 
 const isPaidPlan = computed(() => (currentPlan.value?.price ?? 0) > 0)
@@ -412,6 +447,14 @@ onMounted(async () => {
     console.error('Error cargando planes:', error)
   }
 
+  // Cancelar pagos pendientes expirados primero (en background)
+  try {
+    await paymentService.cancelExpiredPendingPayments()
+  } catch (error) {
+    // No bloquear la carga si falla
+    console.warn('No se pudieron cancelar pagos expirados:', error)
+  }
+
   // Cargar historial de pagos y estadísticas de uso en paralelo
   try {
     const [paymentHistory, stats] = await Promise.all([
@@ -440,8 +483,17 @@ onMounted(async () => {
     } catch (error) {
       console.error('Error actualizando plan después del pago:', error)
     }
-  } else if (statusParam === 'failure' || statusParam === 'rejected') {
-    toastStore.error('Pago rechazado', 'El pago fue rechazado o cancelado')
+  } else if (statusParam === 'failure' || statusParam === 'rejected' || statusParam === 'cancelled') {
+    toastStore.error('Pago cancelado', 'El pago fue rechazado, cancelado o no se completó. Los pagos pendientes se cancelan automáticamente después de 30 minutos.')
+    // Cancelar pagos pendientes expirados cuando se regresa de un pago fallido
+    try {
+      await paymentService.cancelExpiredPendingPayments()
+      // Recargar historial de pagos después de cancelar
+      const paymentHistory = await paymentService.fetchPaymentHistory()
+      payments.value = paymentHistory
+    } catch (error) {
+      console.error('Error cancelando pagos pendientes:', error)
+    }
   }
 
   if (statusParam) {
