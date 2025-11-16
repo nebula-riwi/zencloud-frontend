@@ -201,7 +201,7 @@
                       <div v-if="!results" class="text-white/50 text-sm h-full flex items-center justify-center">
                         Ejecuta una consulta para ver los resultados
                       </div>
-                      <div v-else-if="results.error" class="text-red-400 text-sm p-4 rounded-lg bg-red-950/20 border border-red-500/30">
+                      <div v-else-if="results.error" class="text-red-400 text-sm p-4 rounded-lg bg-red-950/20 border border-red-500/30 max-h-full overflow-y-auto">
                         <div class="flex items-center gap-2 mb-2">
                           <AlertCircle class="h-4 w-4" />
                           <span class="font-semibold">Error al ejecutar consulta</span>

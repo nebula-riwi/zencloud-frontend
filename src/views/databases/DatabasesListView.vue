@@ -60,6 +60,9 @@
                     <p class="text-xs text-white/50">
                       Disponibles para crear: <span class="font-semibold text-white/70">{{ availableToCreate }}</span>
                     </p>
+                    <p v-if="currentPlan && currentPlan.maxDatabases && currentPlan.maxDatabases > 0" class="text-xs text-white/40">
+                      Límite por motor: <span class="font-semibold text-white/60">{{ currentPlan.maxDatabases }}</span>
+                    </p>
                   </div>
                   <div v-else class="space-y-1.5">
                     <p class="text-xs text-white/70 font-medium">
@@ -71,7 +74,7 @@
                       {{ usedCount }}/{{ currentPlan.maxDatabases }} por motor
                     </p>
                     <p class="text-xs text-white/50">
-                      Disponibles: <span class="font-semibold text-white/70">{{ currentPlan.maxDatabases - usedCount }}</span>
+                      Disponibles: <span class="font-semibold text-white/70">{{ availableToCreate }}</span>
                     </p>
                   </div>
                 </div>
@@ -381,36 +384,37 @@ const usageStats = ref<{
 const availableToCreate = computed(() => {
   if (!currentPlan.value) return '∞'
   
-  // Si tenemos datos del backend, usarlos
-  if (usageStats.value) {
-    // Si hay límite global, calcular disponibles
-    if (usageStats.value.totalLimit !== null) {
-      const available = Math.max(0, usageStats.value.totalLimit - totalActive.value)
-      return available
-    }
-    // Si no hay límite global pero hay límite por motor, mostrar límite por motor
-    // Los planes pagos tienen límite por motor, no ilimitados globalmente
+  // Si estamos filtrando por un motor específico, mostrar disponibles para ese motor
+  if (selectedEngine.value !== 'all') {
     const maxPerEngine = currentPlan.value.maxDatabases || 0
     if (maxPerEngine > 0) {
-      // Calcular límite teórico global (número de motores * límite por motor)
-      // Hay 6 motores: MySQL, PostgreSQL, MongoDB, SQL Server, Redis, Cassandra
-      const numEngines = 6
-      const theoreticalGlobalLimit = numEngines * maxPerEngine
-      return `Límite por motor: ${maxPerEngine}`
+      const available = Math.max(0, maxPerEngine - usedCount.value)
+      return available
     }
+    return '∞'
   }
   
-  // Fallback para plan gratuito
+  // Cuando está en "Todas", calcular el total considerando todos los motores
   const isFreePlan = (currentPlan.value.price ?? 0) === 0
+  
+  // Plan gratuito tiene límite global de 5
   if (isFreePlan) {
     const globalLimit = 5
     const available = Math.max(0, globalLimit - totalActive.value)
     return available
   }
   
-  // Para planes pagos sin datos del backend, mostrar límite por motor
+  // Planes pagos: calcular total de bases disponibles (número de motores * límite por motor)
+  // Hay 6 motores: MySQL, PostgreSQL, MongoDB, SQL Server, Redis, Cassandra
+  const numEngines = 6
   const maxPerEngine = currentPlan.value.maxDatabases || 0
-  return maxPerEngine > 0 ? `Límite por motor: ${maxPerEngine}` : '∞'
+  if (maxPerEngine > 0) {
+    const totalLimit = numEngines * maxPerEngine
+    const available = Math.max(0, totalLimit - totalActive.value)
+    return available
+  }
+  
+  return '∞'
 })
 
 const usedCount = computed(() => {
