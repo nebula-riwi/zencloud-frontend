@@ -111,7 +111,7 @@ function volverAlInicio() {
   router.push({ name: 'Home', query: { action: 'login' } })
 }
 
-async function handleSubmit() {
+  async function handleSubmit() {
   if (!linkValid.value) {
     toastStore.error('Enlace inválido', 'Solicita un nuevo enlace desde la opción "Olvidé mi contraseña".')
     return
@@ -127,6 +127,20 @@ async function handleSubmit() {
     return
   }
 
+  // Validar fortaleza de contraseña
+  const hasUpperCase = /[A-Z]/.test(password.value)
+  const hasLowerCase = /[a-z]/.test(password.value)
+  const hasNumber = /\d/.test(password.value)
+  const hasSpecialChar = /[^a-zA-Z\d]/.test(password.value)
+  
+  if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+    toastStore.warning(
+      'Contraseña débil',
+      'La contraseña debe contener al menos una letra mayúscula, una minúscula, un número y un carácter especial.'
+    )
+    return
+  }
+
   loading.value = true
   try {
     await authService.resetPassword({
@@ -137,8 +151,35 @@ async function handleSubmit() {
     toastStore.success('Contraseña actualizada', 'Tu contraseña se actualizó correctamente. Inicia sesión con tus nuevas credenciales.')
     router.push({ name: 'Home', query: { action: 'login' } })
   } catch (error: any) {
-    const message = error?.response?.data?.message || error.message || 'No se pudo restablecer la contraseña.'
-    toastStore.error('Error', message)
+    // Manejar errores específicos del backend
+    const errorCode = error?.response?.data?.errorCode
+    const errorMessage = error?.response?.data?.message || error.message || 'No se pudo restablecer la contraseña.'
+    
+    let userMessage = errorMessage
+    
+    // Mapear códigos de error a mensajes amigables
+    switch (errorCode) {
+      case 'USER_NOT_FOUND':
+        userMessage = 'No se encontró un usuario con ese correo electrónico.'
+        break
+      case 'NO_TOKEN_REQUESTED':
+        userMessage = 'No se ha solicitado un restablecimiento de contraseña. Por favor, solicita uno nuevo.'
+        break
+      case 'INVALID_TOKEN':
+        userMessage = 'El enlace de restablecimiento es inválido. Verifica que estés usando el enlace correcto del correo electrónico.'
+        break
+      case 'EXPIRED_TOKEN':
+        userMessage = 'El enlace de restablecimiento ha expirado. Por favor, solicita un nuevo restablecimiento de contraseña.'
+        break
+      case 'INVALID_TOKEN_SIGNATURE':
+        userMessage = 'El token de restablecimiento no es válido. El enlace puede estar corrupto o haber sido modificado.'
+        break
+      case 'WEAK_PASSWORD':
+        userMessage = 'La contraseña no cumple con los requisitos de seguridad. Debe contener al menos una letra mayúscula, una minúscula, un número y un carácter especial.'
+        break
+    }
+    
+    toastStore.error('Error al restablecer contraseña', userMessage)
   } finally {
     loading.value = false
   }
