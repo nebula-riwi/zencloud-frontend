@@ -644,6 +644,7 @@ async function handleResetPassword() {
       email: resetContext.value.email,
       token: resetContext.value.token,
       newPassword: resetPasswordData.value.password,
+      confirmPassword: resetPasswordData.value.confirmPassword,
     })
     toastStore.success('Contraseña actualizada', 'Tu contraseña ha sido cambiada correctamente')
     showResetPassword.value = false

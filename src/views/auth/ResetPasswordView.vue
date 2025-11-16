@@ -147,6 +147,7 @@ function volverAlInicio() {
       email: email.value,
       token: token.value,
       newPassword: password.value,
+      confirmPassword: confirmPassword.value,
     })
     toastStore.success('Contraseña actualizada', 'Tu contraseña se actualizó correctamente. Inicia sesión con tus nuevas credenciales.')
     router.push({ name: 'Home', query: { action: 'login' } })
