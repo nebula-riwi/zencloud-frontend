@@ -33,7 +33,24 @@ export const useSqlStore = defineStore('sql', () => {
       return result
     } catch (error: any) {
       console.error('Error running query:', error)
-      const backendMessage = error?.response?.data?.error || error?.response?.data?.message || error.message || 'Error al ejecutar query'
+      const errorCode = error?.response?.data?.errorCode
+      let backendMessage = error?.response?.data?.error || error?.response?.data?.message || error.message || 'Error al ejecutar query'
+      
+      // Mejorar mensajes de error específicos
+      if (errorCode === 'VALIDATION_ERROR' || errorCode === 'INVALID_QUERY') {
+        backendMessage = error?.response?.data?.message || 'La consulta no es válida. Verifica la sintaxis.'
+      } else if (errorCode === 'TIMEOUT') {
+        backendMessage = 'La consulta tardó más de 60 segundos en ejecutarse y fue cancelada. Considera optimizar tu consulta o dividirla en consultas más pequeñas.'
+      } else if (errorCode === 'CONNECTION_ERROR' || error?.response?.status === 502 || error?.response?.status === 503) {
+        backendMessage = 'Error de conexión con la base de datos. Verifica que la base de datos esté activa y disponible.'
+      } else if (error?.response?.status === 400) {
+        backendMessage = error?.response?.data?.message || 'Error en la consulta. Verifica la sintaxis y las restricciones.'
+      } else if (error?.response?.status === 401) {
+        backendMessage = 'No tienes permisos para ejecutar esta consulta.'
+      } else if (error?.response?.status === 403) {
+        backendMessage = 'No tienes acceso a esta base de datos.'
+      }
+      
       const errorResult: SqlResult = {
         success: false,
         error: backendMessage,

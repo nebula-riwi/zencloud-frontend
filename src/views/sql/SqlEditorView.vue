@@ -204,12 +204,22 @@
                       <div v-else-if="results.error" class="text-red-400 text-sm p-4 rounded-lg bg-red-950/20 border border-red-500/30">
                         <div class="flex items-center gap-2 mb-2">
                           <AlertCircle class="h-4 w-4" />
-                          <span class="font-semibold">Error</span>
+                          <span class="font-semibold">Error al ejecutar consulta</span>
                         </div>
-                        <p class="mb-2">{{ results.error }}</p>
-                        <p class="text-xs text-white/70">
-                          Puedes ejecutar consultas individuales de lectura o mantenimiento (SELECT, INSERT, UPDATE, DELETE, SHOW, DESCRIBE, EXPLAIN, CREATE, ALTER, DROP) sin múltiples sentencias ni comentarios peligrosos.
-                        </p>
+                        <p class="mb-2 font-mono text-xs break-words">{{ results.error }}</p>
+                        <div class="mt-3 pt-3 border-t border-red-500/20">
+                          <p class="text-xs text-white/70 mb-2 font-semibold">Restricciones:</p>
+                          <ul class="text-xs text-white/60 space-y-1 list-disc list-inside">
+                            <li>Puedes ejecutar consultas individuales de lectura o mantenimiento</li>
+                            <li>Sentencias permitidas: SELECT, INSERT, UPDATE, DELETE, SHOW, DESCRIBE, EXPLAIN, CREATE, ALTER, DROP</li>
+                            <li>No se permiten múltiples sentencias separadas por punto y coma</li>
+                            <li>No se permiten comentarios peligrosos o caracteres especiales sospechosos</li>
+                            <li>La consulta no puede exceder 10,000 caracteres</li>
+                          </ul>
+                          <p class="text-xs text-white/50 mt-2 italic">
+                            Si el error persiste, verifica que la sintaxis SQL sea correcta para {{ selectedDb?.engine?.toUpperCase() || 'tu motor' }}.
+                          </p>
+                        </div>
                       </div>
                       <div v-else-if="results.data" class="space-y-3">
                         <div v-if="results.affectedRows !== undefined" class="text-sm text-white/60 mb-3 p-2 rounded-lg bg-white/5">
