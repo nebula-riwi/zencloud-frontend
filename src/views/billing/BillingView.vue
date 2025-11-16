@@ -143,7 +143,7 @@
             <Card
               v-for="(plan, index) in displayPlans"
               :key="plan.slug ?? plan.id ?? index"
-              class="group relative overflow-hidden border-white/10 hover:border-[#e78a53]/40 transition-colors duration-300"
+              class="group relative overflow-hidden border-white/10 hover:border-[#e78a53]/40 transition-colors duration-300 flex flex-col"
               :class="{ 'border-[#e78a53]/50': plan.popular }"
               :style="{ transitionDelay: `${(index + 1) * 100}ms` }"
             >
@@ -184,9 +184,9 @@
                   </li>
                 </ul>
               </CardContent>
-              <CardFooter class="relative z-10">
+              <CardFooter class="relative z-10 mt-auto">
                 <Button 
-                  class="w-full font-semibold" 
+                  class="w-full font-semibold h-11" 
                   :variant="isPlanActive(plan) ? 'outline' : (canUpgradeToPlan(plan) ? 'primary' : 'outline')"
                   :class="isPlanActive(plan) 
                     ? 'border-white/20 bg-black/40 text-white/70 hover:bg-black/50 hover:border-white/30 cursor-default' 
@@ -279,10 +279,10 @@
                   <div class="text-right ml-4">
                     <p class="font-bold text-white mb-2 text-xl" style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);">{{ payment.amount }}</p>
                     <Badge 
-                      :variant="payment.status === 'paid' ? 'success' : 'warning'"
+                      :variant="payment.status === 'paid' ? 'success' : 'error'"
                       class="shadow-lg"
                     >
-                      {{ payment.status === 'paid' ? 'Pagado' : 'Pendiente' }}
+                      {{ payment.status === 'paid' ? 'Pagado' : 'Rechazado' }}
                     </Badge>
                   </div>
                 </div>
@@ -515,13 +515,8 @@ onMounted(async () => {
     console.error('Error cargando planes:', error)
   }
 
-  // Cancelar pagos pendientes expirados primero (en background)
-  try {
-    await paymentService.cancelExpiredPendingPayments()
-  } catch (error) {
-    // No bloquear la carga si falla
-    console.warn('No se pudieron cancelar pagos expirados:', error)
-  }
+        // Los pagos ya no tienen estado "pending", se crean como "rejected" hasta que MercadoPago los confirme
+        // No es necesario cancelar pagos pendientes
 
   // Cargar historial de pagos y estadísticas de uso en paralelo
   try {
@@ -552,15 +547,13 @@ onMounted(async () => {
       console.error('Error actualizando plan después del pago:', error)
     }
   } else if (statusParam === 'failure' || statusParam === 'rejected' || statusParam === 'cancelled') {
-    toastStore.error('Pago cancelado', 'El pago fue rechazado, cancelado o no se completó. Los pagos pendientes se cancelan automáticamente después de 10 minutos.')
-    // Cancelar pagos pendientes expirados cuando se regresa de un pago fallido
+    toastStore.error('Pago cancelado', 'El pago fue rechazado o cancelado. Si completaste el pago, espera unos momentos mientras se procesa.')
+    // Recargar historial de pagos para ver el estado actualizado
     try {
-      await paymentService.cancelExpiredPendingPayments()
-      // Recargar historial de pagos después de cancelar
       const paymentHistory = await paymentService.fetchPaymentHistory()
       payments.value = paymentHistory
     } catch (error) {
-      console.error('Error cancelando pagos pendientes:', error)
+      console.error('Error recargando historial de pagos:', error)
     }
   }
 

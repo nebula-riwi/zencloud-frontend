@@ -19,10 +19,11 @@ interface PaymentHistoryApiResponse {
 }
 
 function mapPaymentResponse(payment: PaymentHistoryResponseDto): PaymentHistory {
-  const statusMap: Record<string, 'paid' | 'pending' | 'failed'> = {
+  // Solo dos estados: approved (paid) o rejected (failed)
+  const statusMap: Record<string, 'paid' | 'failed'> = {
     'Approved': 'paid',
-    'Pending': 'pending',
     'Rejected': 'failed',
+    'Pending': 'failed', // Los pagos pendientes ahora se mapean a failed (rechazado)
   }
 
   const date = new Date(payment.transactionDate || payment.createdAt)
@@ -55,7 +56,7 @@ function mapPaymentResponse(payment: PaymentHistoryResponseDto): PaymentHistory 
     description,
     amount: `$${payment.amount.toLocaleString('es-CO')} ${payment.currency}`,
     currency: payment.currency,
-    status: statusMap[payment.status] || 'pending',
+    status: statusMap[payment.status] || 'failed', // Por defecto failed (rechazado) si no se reconoce el estado
     date: formattedDate,
     method: payment.paymentMethod || 'Mercado Pago',
   }
