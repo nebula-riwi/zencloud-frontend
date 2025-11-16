@@ -91,8 +91,23 @@ export const databaseService = {
 
       return this.mapDatabaseResponse(response.data.data)
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Error al crear base de datos'
-      throw new Error(errorMessage)
+      // Preservar toda la información del error del backend
+      const backendError = error.response?.data || {}
+      const errorMessage = backendError.message || error.message || 'Error al crear base de datos'
+      
+      // Crear un error extendido que preserve la información del backend
+      const extendedError: any = new Error(errorMessage)
+      extendedError.response = {
+        ...error.response,
+        data: {
+          ...backendError,
+          message: errorMessage,
+          errorCode: backendError.errorCode || 'UNKNOWN_ERROR',
+          details: backendError.details || backendError.errors,
+        }
+      }
+      
+      throw extendedError
     }
   },
 

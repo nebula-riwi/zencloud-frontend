@@ -78,7 +78,7 @@
                 />
               </div>
               <p class="text-xs text-white/50 mt-1.5 ml-1">
-                Solo letras minúsculas, números y guiones
+                Solo letras, números, guiones y guiones bajos (se convertirán a minúsculas)
               </p>
             </div>
 
@@ -184,8 +184,11 @@ async function handleCreate() {
   
   loading.value = true
   try {
+    // Normalizar el nombre a minúsculas antes de enviarlo
+    const normalizedName = formData.name ? formData.name.trim().toLowerCase() : ''
+    
     await databaseStore.createDatabase({
-      name: formData.name,
+      name: normalizedName,
       engine: formData.engine as DatabaseEngine,
     })
     toastStore.success('Base de datos creada', 'Las credenciales se han enviado por correo electrónico')
@@ -196,16 +199,29 @@ async function handleCreate() {
     emit('update:modelValue', false)
     emit('created')
   } catch (error: any) {
+    console.error('Error completo al crear BD:', error)
+    
     const errorCode = error?.response?.data?.errorCode
     const errorMessage = error?.response?.data?.message || error.message || 'No se pudo crear la base de datos'
-    const errorDetails = error?.response?.data?.details
+    const errorDetails = error?.response?.data?.details || error?.response?.data?.errors
+    
+    // Si hay errores de validación específicos, mostrarlos
+    let userMessage = errorMessage
+    if (errorDetails && Array.isArray(errorDetails)) {
+      const validationErrors = errorDetails
+        .map((err: any) => `${err.field || 'Campo'}: ${err.message || err}`)
+        .join(', ')
+      if (validationErrors) {
+        userMessage = `Errores de validación: ${validationErrors}`
+      }
+    } else if (errorDetails && typeof errorDetails === 'string') {
+      userMessage = errorDetails
+    }
     
     // Mapear códigos de error a mensajes amigables
-    let userMessage = errorMessage
-    
     switch (errorCode) {
       case 'VALIDATION_ERROR':
-        userMessage = errorDetails || 'Los datos proporcionados no son válidos.'
+        userMessage = userMessage || 'Los datos proporcionados no son válidos. Verifica que todos los campos estén correctamente completados.'
         break
       case 'CONFIGURATION_ERROR':
         userMessage = 'Error de configuración del servidor. Contacta al administrador.'

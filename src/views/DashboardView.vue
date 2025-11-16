@@ -77,10 +77,16 @@
               </p>
               <div class="mt-4 flex items-center gap-2">
                 <div class="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
-                  <div class="h-full bg-gradient-to-r from-[#e78a53] to-[#f59a63] rounded-full" style="width: 60%"></div>
+                  <div 
+                    class="h-full bg-gradient-to-r from-[#e78a53] to-[#f59a63] rounded-full transition-all duration-500" 
+                    :style="{ width: `${Math.min(planUsagePercentage, 100)}%` }"
+                  ></div>
                 </div>
-                <span class="text-xs text-white/50 font-medium">60%</span>
+                <span class="text-xs text-white/50 font-medium">{{ planUsagePercentage.toFixed(0) }}%</span>
               </div>
+              <p v-if="planUsageStats" class="text-xs text-white/50 mt-2">
+                {{ planUsageStats.totalActive }} / {{ planUsageStats.totalLimit ?? '∞' }} bases activas
+              </p>
             </CardContent>
           </Card>
         </Transition>
@@ -232,6 +238,17 @@ const engines = [
 const totalDatabases = computed(() => databases.value.length)
 const activeWebhooks = computed(() => 0) // Webhooks deshabilitados temporalmente
 
+const planUsageStats = ref<{
+  totalActive: number
+  totalLimit: number | null
+  globalPercentage: number
+} | null>(null)
+
+const planUsagePercentage = computed(() => {
+  if (!planUsageStats.value) return 0
+  return planUsageStats.value.globalPercentage
+})
+
 function goToDatabases(engine: DatabaseEngine) {
   router.push(`/databases?engine=${engine}`)
 }
@@ -253,6 +270,15 @@ onMounted(async () => {
     await Promise.all([
       planStore.fetchPlan(),
       databaseStore.fetchDatabases(),
+      planService.fetchUsageStats().then(stats => {
+        planUsageStats.value = {
+          totalActive: stats.totalActive,
+          totalLimit: stats.totalLimit,
+          globalPercentage: stats.globalPercentage,
+        }
+      }).catch(() => {
+        console.warn('No se pudieron cargar las estadísticas de uso')
+      }),
       // webhookStore.fetchWebhooks().catch(() => {
       //   console.warn('Webhooks deshabilitados temporalmente')
       // }),
