@@ -463,18 +463,19 @@ const showPaymentWarningDialog = ref(false)
 const pendingPlan = ref<Plan | null>(null)
 
 async function upgradeToPlan(plan: Plan) {
-  // Detectar si el navegador es Edge o Brave que pueden tener Tracking Prevention activo
-  const isEdge = navigator.userAgent.includes('Edg/')
-  const isBrave = (navigator as any).brave?.isBrave === true
+  // Detectar si el navegador NO es Chrome ni Firefox (recomendados)
+  const userAgent = navigator.userAgent.toLowerCase()
+  const isChrome = userAgent.includes('chrome/') && !userAgent.includes('edg/') && !userAgent.includes('opr/')
+  const isFirefox = userAgent.includes('firefox/') || userAgent.includes('fxios/')
   
-  // Mostrar advertencia si es Edge o Brave
-  if (isEdge || isBrave) {
+  // Mostrar advertencia solo si NO es Chrome ni Firefox
+  if (!isChrome && !isFirefox) {
     pendingPlan.value = plan
     showPaymentWarningDialog.value = true
     return
   }
   
-  // Continuar con el pago directamente si no es Edge/Brave
+  // Continuar con el pago directamente si es Chrome o Firefox
   await proceedWithPayment(plan)
 }
 
@@ -551,7 +552,7 @@ onMounted(async () => {
       console.error('Error actualizando plan después del pago:', error)
     }
   } else if (statusParam === 'failure' || statusParam === 'rejected' || statusParam === 'cancelled') {
-    toastStore.error('Pago cancelado', 'El pago fue rechazado, cancelado o no se completó. Los pagos pendientes se cancelan automáticamente después de 30 minutos.')
+    toastStore.error('Pago cancelado', 'El pago fue rechazado, cancelado o no se completó. Los pagos pendientes se cancelan automáticamente después de 10 minutos.')
     // Cancelar pagos pendientes expirados cuando se regresa de un pago fallido
     try {
       await paymentService.cancelExpiredPendingPayments()
