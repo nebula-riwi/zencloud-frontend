@@ -416,7 +416,7 @@ onMounted(async () => {
   try {
     const [paymentHistory, stats] = await Promise.all([
       paymentService.fetchPaymentHistory().catch(() => []),
-      fetchUsageStats().catch(() => null),
+      planService.fetchUsageStats().catch(() => null),
     ])
     payments.value = paymentHistory
     usageStats.value = stats
