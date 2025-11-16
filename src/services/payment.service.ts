@@ -74,7 +74,18 @@ async function fetchPaymentHistory(): Promise<PaymentHistory[]> {
   }
 }
 
+async function cancelExpiredPendingPayments(): Promise<{ message: string; cancelled: number }> {
+  try {
+    const response = await apiClient.post<{ message: string; cancelled: number }>('/api/Payments/cancel-expired-pending')
+    return response.data
+  } catch (error: any) {
+    console.error('Error cancelando pagos pendientes expirados:', error)
+    return { message: 'No se pudieron cancelar los pagos expirados', cancelled: 0 }
+  }
+}
+
 export const paymentService = {
   fetchPaymentHistory,
+  cancelExpiredPendingPayments,
 }
 

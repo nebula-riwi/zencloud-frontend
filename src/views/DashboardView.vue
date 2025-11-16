@@ -84,9 +84,44 @@
                 </div>
                 <span class="text-xs text-white/50 font-medium">{{ planUsagePercentage.toFixed(0) }}%</span>
               </div>
-              <p v-if="planUsageStats" class="text-xs text-white/50 mt-2">
-                {{ planUsageStats.totalActive }} / {{ planUsageStats.totalLimit ?? '∞' }} bases activas
-              </p>
+              <div v-if="planUsageStats" class="mt-3 space-y-2 pt-3 border-t border-white/10">
+                <p class="text-xs text-white/60">
+                  <span class="font-semibold text-white/80">{{ planUsageStats.totalActive }}</span> / 
+                  <span class="font-semibold text-white/80">{{ planUsageStats.totalLimit ?? '∞' }}</span> bases activas
+                </p>
+                <p class="text-xs text-white/50">
+                  Disponibles: <span class="font-semibold text-white/70">{{ (planUsageStats.totalLimit ?? Infinity) - planUsageStats.totalActive }}</span> 
+                  <span v-if="planUsageStats.totalLimit !== null">bases</span>
+                  <span v-else>ilimitadas</span>
+                </p>
+                <div v-if="planUsageStats.byEngine && planUsageStats.byEngine.length > 0" class="space-y-1.5">
+                  <p class="text-xs font-semibold text-white/70 uppercase tracking-wider mt-2">Por Motor</p>
+                  <div 
+                    v-for="engine in planUsageStats.byEngine" 
+                    :key="engine.engineId"
+                    class="space-y-1"
+                  >
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-white/70 capitalize">{{ engine.engineName }}</span>
+                      <span class="text-xs text-white/50">
+                        {{ engine.used }} / {{ engine.limit }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <div class="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                        <div 
+                          class="h-full rounded-full transition-all duration-500"
+                          :class="engine.percentage >= 90 ? 'bg-gradient-to-r from-red-500 to-red-600' : engine.percentage >= 70 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 'bg-gradient-to-r from-[#e78a53] to-[#f59a63]'"
+                          :style="{ width: `${Math.min(engine.percentage, 100)}%` }"
+                        ></div>
+                      </div>
+                      <span class="text-xs text-white/40 font-medium min-w-[2rem] text-right">
+                        {{ engine.percentage.toFixed(0) }}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </Transition>
@@ -243,6 +278,14 @@ const planUsageStats = ref<{
   totalActive: number
   totalLimit: number | null
   globalPercentage: number
+  byEngine: Array<{
+    engineId: string
+    engineName: string
+    used: number
+    limit: number
+    percentage: number
+    canCreate: boolean
+  }>
 } | null>(null)
 
 const planUsagePercentage = computed(() => {
@@ -276,6 +319,7 @@ onMounted(async () => {
           totalActive: stats.totalActive,
           totalLimit: stats.totalLimit,
           globalPercentage: stats.globalPercentage,
+          byEngine: stats.byEngine || [],
         }
       }).catch(() => {
         console.warn('No se pudieron cargar las estadísticas de uso')
