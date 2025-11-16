@@ -104,7 +104,8 @@ export const useDatabaseStore = defineStore('database', () => {
       
       // Usar los datos directamente del backend con valores por defecto
       let host = response.host || '168.119.182.243' // IP por defecto del servidor
-      let port = response.port || 3306
+      // Usar puerto 3307 para MySQL, 5432 para PostgreSQL, etc.
+      let port = response.port || (response.engine === 'mysql' ? 3307 : (response.engine === 'postgresql' ? 5432 : 3306))
       let username = response.username || ''
       let databaseName = response.name || ''
       

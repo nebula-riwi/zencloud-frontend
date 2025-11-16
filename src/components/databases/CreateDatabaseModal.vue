@@ -196,7 +196,30 @@ async function handleCreate() {
     emit('update:modelValue', false)
     emit('created')
   } catch (error: any) {
-    toastStore.error('Error', error.response?.data?.message || 'No se pudo crear la base de datos')
+    const errorCode = error?.response?.data?.errorCode
+    const errorMessage = error?.response?.data?.message || error.message || 'No se pudo crear la base de datos'
+    const errorDetails = error?.response?.data?.details
+    
+    // Mapear códigos de error a mensajes amigables
+    let userMessage = errorMessage
+    
+    switch (errorCode) {
+      case 'VALIDATION_ERROR':
+        userMessage = errorDetails || 'Los datos proporcionados no son válidos.'
+        break
+      case 'CONFIGURATION_ERROR':
+        userMessage = 'Error de configuración del servidor. Contacta al administrador.'
+        break
+      case 'LIMIT_EXCEEDED':
+      case 'CONFLICT':
+        userMessage = errorMessage // Ya viene en un formato amigable del backend
+        break
+      case 'NOT_FOUND':
+        userMessage = 'El motor de base de datos seleccionado no está disponible.'
+        break
+    }
+    
+    toastStore.error('Error al crear base de datos', userMessage)
   } finally {
     loading.value = false
   }
