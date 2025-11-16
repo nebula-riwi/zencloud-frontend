@@ -230,7 +230,8 @@ async function loadCredentials(dbId: string) {
       
       credentials.value = creds
       isFirstView.value = creds.firstView
-      showPassword.value = creds.firstView
+      // Siempre mostrar la contraseña visible por defecto si está disponible
+      showPassword.value = !!creds.password || creds.firstView
       
       console.log('🔍 CredentialsModal: credentials.value después de asignar:', credentials.value)
     } else {
