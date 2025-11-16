@@ -163,7 +163,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { usePlanStore } from '@/stores/plan'
@@ -179,6 +179,7 @@ import { Database, CreditCard, Webhook } from 'lucide-vue-next'
 import { ENGINE_FALLBACKS } from '@/composables/useImageFallback'
 import type { DatabaseEngine } from '@/types'
 import { storeToRefs } from 'pinia'
+import { planService } from '@/services/plan.service'
 
 const router = useRouter()
 const authStore = useAuthStore()
