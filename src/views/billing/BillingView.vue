@@ -61,7 +61,7 @@
               </div>
             </CardHeader>
             <CardContent class="space-y-4 text-white/80">
-              <div class="flex flex-wrap items-center justify-center gap-4 px-4">
+              <div class="flex flex-wrap items-center justify-center gap-4 px-6 py-3">
                 <Badge variant="outline" class="border-white/20 text-white/90">
                   {{ isPaidPlan ? 'Plan de pago' : 'Plan gratuito' }}
                 </Badge>
@@ -187,20 +187,46 @@
               <CardFooter class="relative z-10">
                 <Button 
                   class="w-full font-semibold" 
-                  :variant="isPlanActive(plan) ? 'outline' : 'primary'"
+                  :variant="isPlanActive(plan) ? 'outline' : (canUpgradeToPlan(plan) ? 'primary' : 'outline')"
                   :class="isPlanActive(plan) 
-                    ? 'border-white/20 bg-black/40 text-white/70 hover:bg-black/50 hover:border-white/30' 
-                    : 'bg-gradient-to-r from-[#e78a53] to-[#f59a63] hover:from-[#f59a63] hover:to-[#e78a53] text-white shadow-lg shadow-[#e78a53]/30 hover:shadow-[#e78a53]/50'"
+                    ? 'border-white/20 bg-black/40 text-white/70 hover:bg-black/50 hover:border-white/30 cursor-default' 
+                    : canUpgradeToPlan(plan)
+                      ? 'bg-gradient-to-r from-[#e78a53] to-[#f59a63] hover:from-[#f59a63] hover:to-[#e78a53] text-white shadow-lg shadow-[#e78a53]/30 hover:shadow-[#e78a53]/50'
+                      : 'border-white/10 bg-black/30 text-white/40 opacity-60 cursor-not-allowed'"
                   @click="upgradeToPlan(plan)"
-                  :disabled="isPlanActive(plan)"
+                  :disabled="isPlanActive(plan) || !canUpgradeToPlan(plan)"
+                  :title="isPlanActive(plan) ? 'Este es tu plan actual' : (!canUpgradeToPlan(plan) ? 'No puedes cambiar a un plan inferior' : 'Actualizar a este plan')"
                 >
-                  {{ isPlanActive(plan) ? 'Plan Actual' : 'Actualizar Plan' }}
+                  {{ isPlanActive(plan) ? 'Plan Actual' : (canUpgradeToPlan(plan) ? 'Actualizar Plan' : 'No disponible') }}
                 </Button>
               </CardFooter>
             </Card>
           </TransitionGroup>
         </div>
       </div>
+
+      <!-- Payment Warning Dialog -->
+      <AlertDialog
+        v-model="showPaymentWarningDialog"
+        title="Compatibilidad con el navegador"
+        description="Tu navegador tiene configurada la protección de rastreo que puede bloquear recursos necesarios para completar el pago. Esto no es peligroso, simplemente ayuda a las páginas a cargar correctamente."
+        confirm-text="Continuar de todos modos"
+        cancel-text="Cancelar"
+        confirm-variant="primary"
+        @confirm="handlePaymentWarningConfirm"
+      >
+        <div class="space-y-3 text-sm text-white/70 mt-4">
+          <p class="font-semibold text-white/90">Para asegurar una experiencia óptima:</p>
+          <ul class="space-y-2 list-disc list-inside ml-2">
+            <li>Desactiva temporalmente "Tracking Prevention" en Edge (Configuración > Privacidad > Tracking Prevention)</li>
+            <li>O usa otro navegador como Chrome/Firefox para el pago</li>
+            <li>Asegúrate de que no hay bloqueadores de anuncios activos</li>
+          </ul>
+          <p class="text-xs text-white/50 mt-4">
+            Si prefieres continuar ahora, es posible que algunas partes del proceso de pago no carguen correctamente.
+          </p>
+        </div>
+      </AlertDialog>
 
       <!-- Payment History with enhanced styling -->
       <Transition name="fade-up" appear :delay="400">
@@ -284,6 +310,7 @@ import CardFooter from '@/components/ui/CardFooter.vue'
 import Button from '@/components/ui/Button.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Switch from '@/components/ui/Switch.vue'
+import AlertDialog from '@/components/ui/AlertDialog.vue'
 import { Crown, Sparkles, Zap, Receipt } from 'lucide-vue-next'
 import type { Plan, PaymentHistory } from '@/types'
 import { storeToRefs } from 'pinia'
@@ -315,43 +342,8 @@ const fallbackPlans: Plan[] = [
 ]
 
 const displayPlans = computed<Plan[]>(() => {
-  let availablePlans = plans.value.length > 0 ? plans.value : fallbackPlans
-  
-  // Si no hay plan actual, mostrar todos los planes
-  if (!currentPlan.value) {
-    return availablePlans
-  }
-  
-  const currentPlanPrice = currentPlan.value.price ?? 0
-  const isCurrentPlanPaid = currentPlanPrice > 0
-  
-  // Si tiene plan de pago, no mostrar el plan gratuito
-  if (isCurrentPlanPaid) {
-    availablePlans = availablePlans.filter(plan => (plan.price ?? 0) > 0)
-  }
-  
-  // Encontrar el plan más caro disponible
-  const maxPlanPrice = availablePlans.reduce((max, plan) => {
-    const planPrice = plan.price ?? 0
-    return planPrice > max ? planPrice : max
-  }, 0)
-  
-  // Si tiene el plan más caro (mejor plan), no mostrar planes inferiores
-  if (currentPlanPrice >= maxPlanPrice && maxPlanPrice > 0) {
-    // Mostrar solo el plan actual (ya que es el mejor)
-    return availablePlans.filter(plan => {
-      const planId = plan.backendId ?? plan.id
-      const currentId = currentPlan.value?.backendId ?? currentPlan.value?.id
-      return String(planId) === String(currentId)
-    })
-  }
-  
-  // Filtrar planes inferiores al actual (no permitir downgrade)
-  return availablePlans.filter(plan => {
-    const planPrice = plan.price ?? 0
-    // Permitir solo planes iguales o superiores al actual
-    return planPrice >= currentPlanPrice
-  })
+  // Siempre mostrar todos los planes disponibles
+  return plans.value.length > 0 ? plans.value : fallbackPlans
 })
 
 const isPaidPlan = computed(() => (currentPlan.value?.price ?? 0) > 0)
@@ -359,13 +351,29 @@ const autoRenewState = ref(false)
 const autoRenewLoading = ref(false)
 
 const displayTotalLimit = computed(() => {
-  if (!usageStats.value) return '∞'
-  // Si el límite es null, significa que es ilimitado globalmente pero con límite por motor
-  // Para plan intermedio, mostrar el límite por motor como referencia
-  if (usageStats.value.totalLimit === null) {
-    return `∞ (${currentPlan.value?.maxDatabases || 0} por motor)`
+  if (!usageStats.value || !currentPlan.value) {
+    // Fallback si no hay datos
+    if (currentPlan.value) {
+      const maxPerEngine = currentPlan.value.maxDatabases || 0
+      return maxPerEngine > 0 ? `${maxPerEngine} por motor` : '∞'
+    }
+    return '∞'
   }
-  return usageStats.value.totalLimit
+  
+  // Si hay límite global del backend, usarlo
+  if (usageStats.value.totalLimit !== null) {
+    return usageStats.value.totalLimit
+  }
+  
+  // Si no hay límite global, significa que el plan tiene límite por motor
+  // No es "infinito", es limitado por motor (plan pago)
+  const maxPerEngine = currentPlan.value.maxDatabases || 0
+  if (maxPerEngine > 0) {
+    return `${maxPerEngine} por motor`
+  }
+  
+  // Último fallback
+  return '∞'
 })
 
 watch(
@@ -431,44 +439,67 @@ function isPlanActive(plan: Plan): boolean {
   return false
 }
 
+function canUpgradeToPlan(plan: Plan): boolean {
+  // Si no hay plan actual, puede elegir cualquier plan
+  if (!currentPlan.value) {
+    return true
+  }
+  
+  // Si el plan es el mismo, no puede "mejorar"
+  if (isPlanActive(plan)) {
+    return false
+  }
+  
+  const currentPlanPrice = currentPlan.value.price ?? 0
+  const planPrice = plan.price ?? 0
+  
+  // Solo puede cambiar a un plan mejor (precio mayor)
+  // No puede empeorar su plan directamente
+  return planPrice > currentPlanPrice
+}
+
 const payments = ref<PaymentHistory[]>([])
+const showPaymentWarningDialog = ref(false)
+const pendingPlan = ref<Plan | null>(null)
 
 async function upgradeToPlan(plan: Plan) {
+  // Detectar si el navegador es Edge o Brave que pueden tener Tracking Prevention activo
+  const isEdge = navigator.userAgent.includes('Edg/')
+  const isBrave = (navigator as any).brave?.isBrave === true
+  
+  // Mostrar advertencia si es Edge o Brave
+  if (isEdge || isBrave) {
+    pendingPlan.value = plan
+    showPaymentWarningDialog.value = true
+    return
+  }
+  
+  // Continuar con el pago directamente si no es Edge/Brave
+  await proceedWithPayment(plan)
+}
+
+async function proceedWithPayment(plan: Plan) {
   try {
-    // Detectar si el navegador es Edge o Brave que pueden tener Tracking Prevention activo
-    const isEdge = navigator.userAgent.includes('Edg/')
-    const isBrave = (navigator as any).brave?.isBrave === true
-    
-    // Mostrar advertencia si es Edge o Brave
-    if (isEdge || isBrave) {
-      const shouldContinue = confirm(
-        '⚠️ IMPORTANTE: Si usas Edge o Brave con protección de rastreo activa, el pago puede fallar.\n\n' +
-        'Recomendaciones:\n' +
-        '• Desactiva temporalmente "Tracking Prevention" en Edge (Configuración > Privacidad > Tracking Prevention)\n' +
-        '• O usa otro navegador como Chrome/Firefox para el pago\n' +
-        '• Asegúrate de que no hay bloqueadores de anuncios activos\n\n' +
-        '¿Deseas continuar de todos modos?'
-      )
-      
-      if (!shouldContinue) {
-        return
-      }
-    }
-    
     const identifier = plan.backendId ?? plan.id
     const preference = await planStore.upgradePlan(identifier)
     const redirectUrl = preference.payment_url || preference.checkout_url || preference.init_point
     if (redirectUrl) {
-      // Agregar un pequeño delay para mostrar la advertencia antes de redirigir
-      setTimeout(() => {
-        window.location.href = redirectUrl
-      }, 500)
+      window.location.href = redirectUrl
     } else {
       throw new Error('No se recibió una URL de pago')
     }
   } catch (error: any) {
     const message = error?.response?.data?.message || error?.message || 'No se pudo procesar la actualización del plan'
     toastStore.error('Error', message)
+  } finally {
+    showPaymentWarningDialog.value = false
+    pendingPlan.value = null
+  }
+}
+
+async function handlePaymentWarningConfirm() {
+  if (pendingPlan.value) {
+    await proceedWithPayment(pendingPlan.value)
   }
 }
 

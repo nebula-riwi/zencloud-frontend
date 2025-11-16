@@ -326,6 +326,7 @@ import CredentialsModal from '@/components/databases/CredentialsModal.vue'
 import { Database as DatabaseIcon, Plus } from 'lucide-vue-next'
 import type { DatabaseEngine, DatabaseStatus, Database } from '@/types'
 import { storeToRefs } from 'pinia'
+import { planService } from '@/services/plan.service'
 
 const route = useRoute()
 const databaseStore = useDatabaseStore()
@@ -362,20 +363,54 @@ const totalCreated = computed(() => {
   return databases.value.length
 })
 
+// Fetch usage stats from backend to get accurate limits
+const usageStats = ref<{
+  totalActive: number
+  totalLimit: number | null
+  globalPercentage: number
+  byEngine: Array<{
+    engineId: string
+    engineName: string
+    used: number
+    limit: number
+    percentage: number
+    canCreate: boolean
+  }>
+} | null>(null)
+
 const availableToCreate = computed(() => {
   if (!currentPlan.value) return '∞'
-  const maxPerEngine = currentPlan.value.maxDatabases || 0
-  // Para planes pagos, el límite global puede ser ilimitado
-  // Para plan gratuito, el límite global es 5
-  const isFreePlan = (currentPlan.value.price ?? 0) === 0
-  const globalLimit = isFreePlan ? 5 : Infinity
   
-  if (globalLimit === Infinity) {
-    return 'Ilimitadas'
+  // Si tenemos datos del backend, usarlos
+  if (usageStats.value) {
+    // Si hay límite global, calcular disponibles
+    if (usageStats.value.totalLimit !== null) {
+      const available = Math.max(0, usageStats.value.totalLimit - totalActive.value)
+      return available
+    }
+    // Si no hay límite global pero hay límite por motor, mostrar límite por motor
+    // Los planes pagos tienen límite por motor, no ilimitados globalmente
+    const maxPerEngine = currentPlan.value.maxDatabases || 0
+    if (maxPerEngine > 0) {
+      // Calcular límite teórico global (número de motores * límite por motor)
+      // Hay 6 motores: MySQL, PostgreSQL, MongoDB, SQL Server, Redis, Cassandra
+      const numEngines = 6
+      const theoreticalGlobalLimit = numEngines * maxPerEngine
+      return `Límite por motor: ${maxPerEngine}`
+    }
   }
   
-  const available = Math.max(0, globalLimit - totalActive.value)
-  return available
+  // Fallback para plan gratuito
+  const isFreePlan = (currentPlan.value.price ?? 0) === 0
+  if (isFreePlan) {
+    const globalLimit = 5
+    const available = Math.max(0, globalLimit - totalActive.value)
+    return available
+  }
+  
+  // Para planes pagos sin datos del backend, mostrar límite por motor
+  const maxPerEngine = currentPlan.value.maxDatabases || 0
+  return maxPerEngine > 0 ? `Límite por motor: ${maxPerEngine}` : '∞'
 })
 
 const usedCount = computed(() => {
@@ -548,6 +583,20 @@ onMounted(async () => {
     await Promise.all([
       databaseStore.fetchDatabases(),
       planStore.fetchPlan(),
+      // Load usage stats from backend for accurate limits
+      planService.fetchUsageStats()
+        .then(stats => {
+          usageStats.value = {
+            totalActive: stats.totalActive,
+            totalLimit: stats.totalLimit,
+            globalPercentage: stats.globalPercentage,
+            byEngine: stats.byEngine || [],
+          }
+        })
+        .catch(() => {
+          // Silently fail if stats can't be loaded
+          console.warn('Could not load usage stats')
+        }),
     ])
   } catch (error) {
     console.error('Error loading data for databases view:', error)

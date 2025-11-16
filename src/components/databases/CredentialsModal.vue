@@ -165,6 +165,17 @@
       </div>
     </div>
   </Dialog>
+
+  <!-- Rotate Credentials Confirmation Dialog -->
+  <AlertDialog
+    v-model="showRotateConfirmDialog"
+    title="Rotar Credenciales"
+    description="¿Estás seguro de que deseas rotar las credenciales? El usuario y la contraseña actuales dejarán de funcionar. Se generarán nuevas credenciales automáticamente."
+    confirm-text="Rotar"
+    cancel-text="Cancelar"
+    confirm-variant="warning"
+    @confirm="confirmRotate"
+  />
 </template>
 
 <script setup lang="ts">
@@ -172,6 +183,7 @@ import { ref, watch } from 'vue'
 import { useDatabaseStore } from '@/stores/database'
 import { useToastStore } from '@/stores/toast'
 import Dialog from '@/components/ui/Dialog.vue'
+import AlertDialog from '@/components/ui/AlertDialog.vue'
 import Button from '@/components/ui/Button.vue'
 import Loading from '@/components/ui/Loading.vue'
 import { Copy, Eye, EyeOff } from 'lucide-vue-next'
@@ -195,6 +207,7 @@ const loading = ref(false)
 const rotating = ref(false)
 const showPassword = ref(false)
 const isFirstView = ref(false)
+const showRotateConfirmDialog = ref(false)
 
 watch(
   () => [props.modelValue, props.databaseId],
@@ -248,12 +261,13 @@ async function loadCredentials(dbId: string) {
   }
 }
 
-async function handleRotate() {
+function handleRotate() {
   if (!props.databaseId) return
-  
-  if (!confirm('¿Estás seguro de que deseas rotar las credenciales? El usuario y la contraseña actuales dejarán de funcionar. Se generarán nuevas credenciales automáticamente.')) {
-    return
-  }
+  showRotateConfirmDialog.value = true
+}
+
+async function confirmRotate() {
+  if (!props.databaseId) return
   
   rotating.value = true
   try {
@@ -271,6 +285,7 @@ async function handleRotate() {
     toastStore.error('Error', errorMessage)
   } finally {
     rotating.value = false
+    showRotateConfirmDialog.value = false
   }
 }
 

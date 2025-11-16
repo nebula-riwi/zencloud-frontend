@@ -241,6 +241,17 @@ export const databaseService = {
       })
     }
 
+    // Siempre usar puertos externos para usuarios (3307 MySQL, 5433 PostgreSQL)
+    // El backend puede devolver puertos internos, pero los usuarios deben usar los externos
+    let finalPort = port || db.assignedPort
+    if (!finalPort || finalPort === 3306) {
+      // Si el puerto es 3306 (interno MySQL) o no está definido, usar 3307 (externo)
+      finalPort = engineName === 'mysql' ? 3307 : (engineName === 'postgresql' ? 5433 : 3307)
+    } else if (finalPort === 5432 && engineName === 'postgresql') {
+      // Si el puerto es 5432 (interno PostgreSQL), usar 5433 (externo)
+      finalPort = 5433
+    }
+
     return {
       id: db.instanceId,
       name: db.databaseName,
@@ -248,7 +259,7 @@ export const databaseService = {
       status: statusMap[db.status] || 'active',
       createdAt: db.createdAt,
       host: host || db.serverIpAddress || '168.119.182.243',
-      port: port || db.assignedPort || (engineName === 'mysql' ? 3307 : (engineName === 'postgresql' ? 5433 : 3307)),
+      port: finalPort,
       username: username || db.databaseUser || '',
       connectionString: db.connectionString || '',
     }
