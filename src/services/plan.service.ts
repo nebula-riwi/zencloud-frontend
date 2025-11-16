@@ -154,10 +154,30 @@ async function updateAutoRenew(enabled: boolean): Promise<boolean> {
   return response.data.autoRenewEnabled
 }
 
+interface UsageStats {
+  totalActive: number
+  totalLimit: number | null
+  globalPercentage: number
+  byEngine: Array<{
+    engineId: string
+    engineName: string
+    used: number
+    limit: number
+    percentage: number
+    canCreate: boolean
+  }>
+}
+
+async function fetchUsageStats(): Promise<UsageStats> {
+  const response = await apiClient.get<UsageStats>('/api/Payments/usage-stats')
+  return response.data
+}
+
 export const planService = {
   fetchPlans,
   createSubscription,
   fetchCurrentSubscription,
   updateAutoRenew,
+  fetchUsageStats,
 }
 

@@ -60,20 +60,74 @@
                 />
               </div>
             </CardHeader>
-            <CardContent class="flex flex-wrap items-center gap-4 text-white/80">
-              <Badge variant="outline" class="border-white/20 text-white/90">
-                {{ isPaidPlan ? 'Plan de pago' : 'Plan gratuito' }}
-              </Badge>
-              <Badge
-                v-if="formattedEndDate && daysRemaining !== null"
-                :variant="daysRemaining && daysRemaining > 3 ? 'success' : 'warning'"
-                class="capitalize"
-              >
-                {{ daysRemaining === 0 ? 'Vence hoy' : `Quedan ${daysRemaining} días` }}
-              </Badge>
-              <p class="text-sm text-white/60">
-                {{ (currentPlan?.price || 0) === 0 ? 'Sin costo mensual' : `Valor mensual: $${currentPlan?.price.toLocaleString()} COP` }}
-              </p>
+            <CardContent class="space-y-4 text-white/80">
+              <div class="flex flex-wrap items-center gap-4">
+                <Badge variant="outline" class="border-white/20 text-white/90">
+                  {{ isPaidPlan ? 'Plan de pago' : 'Plan gratuito' }}
+                </Badge>
+                <Badge
+                  v-if="formattedEndDate && daysRemaining !== null"
+                  :variant="daysRemaining && daysRemaining > 3 ? 'success' : 'warning'"
+                  class="capitalize"
+                >
+                  {{ daysRemaining === 0 ? 'Vence hoy' : `Quedan ${daysRemaining} días` }}
+                </Badge>
+                <p class="text-sm text-white/60">
+                  {{ (currentPlan?.price || 0) === 0 ? 'Sin costo mensual' : `Valor mensual: $${currentPlan?.price.toLocaleString()} COP` }}
+                </p>
+              </div>
+              
+              <!-- Usage Statistics with Progress Bars -->
+              <div v-if="usageStats" class="space-y-4 pt-4 border-t border-white/10">
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm font-semibold text-white/90">Uso de Bases de Datos</p>
+                    <span class="text-xs text-white/60">
+                      {{ usageStats.totalActive }} / {{ usageStats.totalLimit ?? '∞' }} activas
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                      <div 
+                        class="h-full bg-gradient-to-r from-[#e78a53] to-[#f59a63] rounded-full transition-all duration-500" 
+                        :style="{ width: `${Math.min(usageStats.globalPercentage, 100)}%` }"
+                      ></div>
+                    </div>
+                    <span class="text-xs text-white/50 font-medium min-w-[3rem] text-right">
+                      {{ usageStats.globalPercentage.toFixed(1) }}%
+                    </span>
+                  </div>
+                </div>
+                
+                <!-- Per Engine Usage -->
+                <div v-if="usageStats.byEngine.length > 0" class="space-y-2">
+                  <p class="text-xs font-semibold text-white/70 uppercase tracking-wider">Por Motor</p>
+                  <div 
+                    v-for="engine in usageStats.byEngine" 
+                    :key="engine.engineId"
+                    class="space-y-1"
+                  >
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-white/80 capitalize">{{ engine.engineName }}</span>
+                      <span class="text-xs text-white/60">
+                        {{ engine.used }} / {{ engine.limit }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <div class="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div 
+                          class="h-full rounded-full transition-all duration-500"
+                          :class="engine.percentage >= 90 ? 'bg-gradient-to-r from-red-500 to-red-600' : engine.percentage >= 70 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 'bg-gradient-to-r from-[#e78a53] to-[#f59a63]'"
+                          :style="{ width: `${Math.min(engine.percentage, 100)}%` }"
+                        ></div>
+                      </div>
+                      <span class="text-xs text-white/50 font-medium min-w-[2.5rem] text-right">
+                        {{ engine.percentage.toFixed(0) }}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </Transition>
@@ -230,10 +284,26 @@ import Switch from '@/components/ui/Switch.vue'
 import { Crown, Sparkles, Zap, Receipt } from 'lucide-vue-next'
 import type { Plan, PaymentHistory } from '@/types'
 import { storeToRefs } from 'pinia'
+import { planService } from '@/services/plan.service'
 
 const planStore = usePlanStore()
 const toastStore = useToastStore()
 const { currentPlan, plans, loadingPlans } = storeToRefs(planStore)
+
+const usageStats = ref<{
+  totalActive: number
+  totalLimit: number | null
+  globalPercentage: number
+  byEngine: Array<{
+    engineId: string
+    engineName: string
+    used: number
+    limit: number
+    percentage: number
+    canCreate: boolean
+  }>
+} | null>(null)
+const loadingUsageStats = ref(false)
 
 const fallbackPlans: Plan[] = [
   { id: 'free', slug: 'free', name: 'Gratis', price: 0, currency: 'COP', maxDatabases: 2, features: ['2 bases por motor', 'Soporte básico'] },
@@ -342,12 +412,16 @@ onMounted(async () => {
     console.error('Error cargando planes:', error)
   }
 
-  // Cargar historial de pagos
+  // Cargar historial de pagos y estadísticas de uso en paralelo
   try {
-    const paymentHistory = await paymentService.fetchPaymentHistory()
+    const [paymentHistory, stats] = await Promise.all([
+      paymentService.fetchPaymentHistory().catch(() => []),
+      fetchUsageStats().catch(() => null),
+    ])
     payments.value = paymentHistory
+    usageStats.value = stats
   } catch (error) {
-    console.error('Error cargando historial de pagos:', error)
+    console.error('Error cargando historial de pagos o estadísticas:', error)
     payments.value = []
   }
 
