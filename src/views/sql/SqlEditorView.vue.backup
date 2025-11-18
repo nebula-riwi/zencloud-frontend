@@ -1,0 +1,452 @@
+<template>
+  <DashboardLayout>
+    <div class="space-y-6 relative">
+      <!-- Header -->
+      <Transition name="fade-up" appear>
+        <div class="relative z-10">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-1 h-10 bg-gradient-to-b from-[#e78a53] to-transparent rounded-full"></div>
+            <div>
+              <h1 class="text-4xl font-bold text-white mb-1 tracking-tight">
+                SQL Editor
+              </h1>
+              <p class="text-white/60 text-sm">Ejecuta consultas SQL en tus bases de datos</p>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Grid Layout -->
+      <div class="grid grid-cols-12 gap-4 relative z-10">
+        <!-- Sidebar with enhanced styling -->
+        <Transition name="fade-up" appear :delay="100">
+          <Card class="w-80 flex-shrink-0 border-white/10 overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/5 via-transparent to-transparent opacity-50"></div>
+            <CardHeader class="relative z-10 border-b border-white/10">
+              <div class="flex items-center gap-3">
+                <div class="w-1 h-8 bg-gradient-to-b from-[#e78a53] to-transparent rounded-full"></div>
+                <CardTitle class="text-xl text-white" style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);">Bases de Datos</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent class="relative z-10 pt-6 overflow-y-auto" style="max-height: calc(100vh - 20rem);">
+              <div class="space-y-4">
+                <p v-if="databases.length > sqlDatabases.length" class="text-xs text-white/45 px-3">
+                  Mostrando solo motores SQL compatibles (MySQL y PostgreSQL).
+                </p>
+                <div v-if="sqlDatabases.length === 0" class="text-center text-white/50 text-sm py-8 px-3">
+                  No tienes bases de datos SQL activas todavía.
+                </div>
+                <!-- Databases List -->
+              <div class="space-y-3">
+                <div v-for="engine in groupedDatabases" :key="engine" class="space-y-2">
+                  <button
+                    class="w-full text-left px-3 py-2 text-sm font-semibold text-white/90 hover:text-white rounded-lg hover:bg-white/5 transition-colors duration-200 flex items-center justify-between group"
+                    @click="toggleEngine(engine)"
+                  >
+                    <span>{{ engine }}</span>
+                    <ChevronDown 
+                      class="h-4 w-4 text-white/50 transition-transform duration-200"
+                      :class="{ 'rotate-180': expandedEngines.includes(engine) }"
+                    />
+                  </button>
+                  <Transition name="expand">
+                    <div v-if="expandedEngines.includes(engine)" class="ml-4 space-y-1 border-l border-white/10 pl-3">
+                      <button
+                        v-for="db in getDatabasesByEngine(engine)"
+                        :key="db.id"
+                        class="w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-white/5 transition-colors duration-200 group"
+                        :class="{ 
+                          'bg-gradient-to-r from-[#e78a53]/20 to-[#e78a53]/10 text-[#e78a53] border border-[#e78a53]/30': selectedDb?.id === db.id,
+                          'text-white/70 hover:text-white': selectedDb?.id !== db.id
+                        }"
+                        @click="selectDatabase(db)"
+                      >
+                        <div class="flex items-center gap-2">
+                          <Database class="h-3 w-3" />
+                          <span class="font-medium">{{ db.name }}</span>
+                        </div>
+                      </button>
+                    </div>
+                  </Transition>
+                  </div>
+                </div>
+                
+                <!-- Tables Section - Always visible when database is selected -->
+                <div v-if="selectedDb" class="pt-4 border-t border-white/10 mt-4">
+                  <div class="flex items-center justify-between mb-3 px-3">
+                    <div class="flex items-center gap-2">
+                      <div class="w-1 h-4 bg-gradient-to-b from-[#e78a53] to-transparent rounded-full"></div>
+                      <h3 class="text-sm font-semibold text-white/90">Tablas</h3>
+                      <span class="text-xs text-white/40">({{ tables.length }})</span>
+                    </div>
+                    <button
+                      type="button"
+                      @click="loadTables"
+                      :disabled="loadingTables"
+                      class="h-6 w-6 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors duration-200 text-white/60 hover:text-white disabled:opacity-50"
+                      title="Actualizar tablas"
+                    >
+                      <RefreshCw class="h-3 w-3" :class="{ 'animate-spin': loadingTables }" />
+                    </button>
+                  </div>
+                  
+                  <div v-if="loadingTables" class="px-3 py-4 text-center">
+                    <div class="inline-flex items-center gap-2 text-xs text-white/50">
+                      <RefreshCw class="h-3 w-3 animate-spin" />
+                      <span>Cargando tablas...</span>
+                    </div>
+                  </div>
+                  
+                  <div v-else-if="tables.length === 0" class="px-3 py-4 text-center">
+                    <div class="flex flex-col items-center gap-2">
+                      <Database class="h-8 w-8 text-white/20" />
+                      <p class="text-xs text-white/50">No hay tablas disponibles</p>
+                    </div>
+                  </div>
+                  
+                  <div v-else class="space-y-1.5 px-3 max-h-96 overflow-y-auto scrollbar-hide">
+                    <button
+                      v-for="table in tables"
+                      :key="table.name"
+                      class="w-full text-left px-3 py-2.5 text-xs rounded-lg hover:bg-gradient-to-r hover:from-[#e78a53]/10 hover:to-transparent active:bg-[#e78a53]/20 transition-all duration-200 group flex items-center justify-between border border-transparent hover:border-[#e78a53]/20"
+                      @click="insertTableName(table.name)"
+                      title="Click para insertar '{{ table.name }}' en el editor"
+                    >
+                      <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                        <div class="w-2.5 h-2.5 rounded-full bg-[#e78a53] flex-shrink-0 shadow-lg shadow-[#e78a53]/50 group-hover:shadow-[#e78a53]/70 transition-shadow"></div>
+                        <span class="font-mono text-white/80 group-hover:text-white truncate font-medium">{{ table.name }}</span>
+                      </div>
+                      <span v-if="table.rowCount !== undefined" class="text-xs text-white/40 ml-2 flex-shrink-0 font-medium">
+                        {{ table.rowCount.toLocaleString() }}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Empty state when no database is selected -->
+                <div v-else class="pt-4 px-3 text-center">
+                  <p class="text-xs text-white/50">Selecciona una base de datos para ver sus tablas</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Transition>
+
+        <!-- Editor with enhanced styling -->
+        <div class="flex-1 flex flex-col gap-6">
+          <Transition name="fade-up" appear :delay="200">
+            <Card class="border-white/10 overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/5 via-transparent to-transparent opacity-50"></div>
+              <CardHeader class="relative z-10 border-b border-white/10">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-1 h-8 bg-gradient-to-b from-[#e78a53] to-transparent rounded-full"></div>
+                    <CardTitle class="text-xl text-white" style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);">Editor de Consultas</CardTitle>
+                  </div>
+                  <div class="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      @click="clear"
+                      class="border-white/10 hover:border-[#e78a53]/40 hover:bg-white/5"
+                    >
+                      Limpiar
+                    </Button>
+                    <Button 
+                      @click="executeQuery" 
+                      :loading="isRunning"
+                      :disabled="!selectedDb || !queryText.trim()"
+                      class="!bg-gradient-to-r !from-[#e78a53] !to-[#f59a63] hover:!from-[#f59a63] hover:!to-[#e78a53] !text-white !shadow-lg !shadow-[#e78a53]/30 hover:!shadow-[#e78a53]/50 !border-0"
+                    >
+                      Ejecutar
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent class="relative z-10 pt-6">
+                <div class="flex flex-col h-[calc(100vh-20rem)] gap-6">
+                  <!-- Query Editor -->
+                  <div class="flex flex-col flex-1 min-h-0">
+                    <label class="text-sm font-semibold text-white/90 mb-3 flex items-center gap-2">
+                      <Terminal class="h-4 w-4 text-[#e78a53]" />
+                      Consulta SQL
+                    </label>
+                    <textarea
+                      v-model="queryText"
+                      class="flex-1 font-mono text-sm p-4 rounded-xl border border-white/10 bg-black/30 backdrop-blur-sm text-white placeholder:text-white/40 resize-none focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 transition-all"
+                      placeholder="SELECT * FROM nombre_tabla;"
+                    />
+                  </div>
+
+                  <!-- Results -->
+                  <div class="flex flex-col flex-1 min-h-0">
+                    <label class="text-sm font-semibold text-white/90 mb-3 flex items-center gap-2">
+                      <Database class="h-4 w-4 text-[#e78a53]" />
+                      Resultados
+                    </label>
+                    <div class="flex-1 border border-white/10 rounded-xl p-4 overflow-auto bg-black/30 backdrop-blur-sm">
+                      <div v-if="!results" class="text-white/50 text-sm h-full flex items-center justify-center">
+                        Ejecuta una consulta para ver los resultados
+                      </div>
+                      <div v-else-if="results.error" class="text-red-400 text-sm p-4 rounded-lg bg-red-950/20 border border-red-500/30 max-h-full overflow-y-auto">
+                        <div class="flex items-center gap-2 mb-2">
+                          <AlertCircle class="h-4 w-4" />
+                          <span class="font-semibold">Error al ejecutar consulta</span>
+                        </div>
+                        <p class="mb-2 font-mono text-xs break-words">{{ results.error }}</p>
+                        <div class="mt-3 pt-3 border-t border-red-500/20">
+                          <p class="text-xs text-white/70 mb-2 font-semibold">Restricciones:</p>
+                          <ul class="text-xs text-white/60 space-y-1 list-disc list-inside">
+                            <li>Puedes ejecutar consultas individuales de lectura o mantenimiento</li>
+                            <li>Sentencias permitidas: SELECT, INSERT, UPDATE, DELETE, SHOW, DESCRIBE, EXPLAIN, CREATE, ALTER, DROP</li>
+                            <li>No se permiten múltiples sentencias separadas por punto y coma</li>
+                            <li>No se permiten comentarios peligrosos o caracteres especiales sospechosos</li>
+                            <li>La consulta no puede exceder 10,000 caracteres</li>
+                          </ul>
+                          <p class="text-xs text-white/50 mt-2 italic">
+                            Si el error persiste, verifica que la sintaxis SQL sea correcta para {{ selectedDb?.engine?.toUpperCase() || 'tu motor' }}.
+                          </p>
+                        </div>
+                      </div>
+                      <div v-else-if="results.data" class="space-y-3">
+                        <div v-if="results.affectedRows !== undefined" class="text-sm text-white/60 mb-3 p-2 rounded-lg bg-white/5">
+                          Filas afectadas: <span class="font-semibold text-[#e78a53]">{{ results.affectedRows }}</span>
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-white/10">
+                          <table class="w-full text-xs border-collapse bg-black/20">
+                            <thead>
+                              <tr class="border-b border-white/10 bg-white/5">
+                                <th v-for="key in Object.keys(results.data[0] || {})" :key="key" class="text-left p-3 text-white/90 font-semibold">
+                                  {{ key }}
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr v-for="(row, idx) in results.data" :key="idx" class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                <td v-for="key in Object.keys(row)" :key="key" class="p-3 text-white/80 font-mono text-xs">
+                                  {{ typeof row[key] === 'object' ? JSON.stringify(row[key], null, 2) : row[key] }}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Transition>
+
+          <Transition name="fade-up" appear :delay="400">
+            <Card class="border-white/10 overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/5 via-transparent to-transparent opacity-50"></div>
+              <CardHeader class="relative z-10 border-b border-white/10 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-1 h-8 bg-gradient-to-b from-[#e78a53] to-transparent rounded-full"></div>
+                  <CardTitle class="text-xl text-white" style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);">Historial de consultas</CardTitle>
+                </div>
+                <Badge v-if="history.length" variant="outline" class="border-white/20 text-white/70">
+                  {{ history.length }} registros
+                </Badge>
+              </CardHeader>
+              <CardContent class="relative z-10 max-h-64 overflow-y-auto space-y-3">
+                <div v-if="history.length === 0" class="text-white/60 text-sm py-6 text-center">
+                  No hay consultas registradas aún para esta base de datos.
+                </div>
+                <div
+                  v-for="item in history"
+                  :key="item.id"
+                  class="border border-white/10 rounded-lg p-3 bg-black/30 backdrop-blur-sm flex flex-col gap-1"
+                >
+                  <div class="flex items-center justify-between text-xs text-white/50">
+                    <span>{{ formatHistoryDate(item.executedAt) }}</span>
+                    <Badge :variant="item.success ? 'success' : 'warning'">
+                      {{ item.success ? 'Éxito' : 'Error' }}
+                    </Badge>
+                  </div>
+                  <code class="text-white text-sm font-mono whitespace-pre-wrap break-words">{{ item.query }}</code>
+                  <div class="text-xs text-white/50">
+                    <span>{{ item.rowCount !== undefined ? `${item.rowCount} filas` : 'Sin resultados' }}</span>
+                    <span v-if="item.executionTimeMs"> • {{ Number(item.executionTimeMs).toFixed(2) }} ms</span>
+                    <span v-if="item.error" class="text-red-400 font-semibold"> • {{ item.error }}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Transition>
+        </div>
+      </div>
+    </div>
+  </DashboardLayout>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
+import { useDatabaseStore } from '@/stores/database'
+import { useSqlStore } from '@/stores/sql'
+import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import Card from '@/components/ui/Card.vue'
+import CardHeader from '@/components/ui/CardHeader.vue'
+import CardTitle from '@/components/ui/CardTitle.vue'
+import CardContent from '@/components/ui/CardContent.vue'
+import Button from '@/components/ui/Button.vue'
+import Badge from '@/components/ui/Badge.vue'
+import { Database, Terminal, ChevronDown, AlertCircle, RefreshCw } from 'lucide-vue-next'
+import type { Database as DatabaseType, DatabaseEngine } from '@/types'
+import { storeToRefs } from 'pinia'
+
+const databaseStore = useDatabaseStore()
+const sqlStore = useSqlStore()
+
+const { databases } = storeToRefs(databaseStore)
+const { selectedDb, queryText, isRunning, results, tables, loadingTables, history } = storeToRefs(sqlStore)
+
+const expandedEngines = ref<string[]>([])
+const SQL_ENGINES: DatabaseEngine[] = ['mysql', 'postgresql']
+
+const sqlDatabases = computed(() => databases.value.filter((db) => SQL_ENGINES.includes(db.engine)))
+
+const groupedDatabases = computed(() => {
+  const engines = new Set(sqlDatabases.value.map((db) => db.engine))
+  return Array.from(engines)
+})
+
+function getDatabasesByEngine(engine: string) {
+  return sqlDatabases.value.filter((db) => db.engine === engine)
+}
+
+function toggleEngine(engine: string) {
+  const index = expandedEngines.value.indexOf(engine)
+  if (index > -1) {
+    expandedEngines.value.splice(index, 1)
+  } else {
+    expandedEngines.value.push(engine)
+  }
+}
+
+async function selectDatabase(db: DatabaseType) {
+  await sqlStore.selectDatabase(db)
+  // Always load tables when database is selected
+  if (db) {
+    await loadTables()
+  } else {
+    sqlStore.tables = []
+  }
+}
+
+async function loadTables() {
+  if (selectedDb.value) {
+    await sqlStore.fetchTables(selectedDb.value)
+  }
+}
+
+function insertTableName(tableName: string) {
+  if (queryText.value.trim()) {
+    queryText.value += ` ${tableName}`
+  } else {
+    queryText.value = `SELECT * FROM ${tableName};`
+  }
+}
+
+watch(selectedDb, async (db) => {
+  if (db && !expandedEngines.value.includes(db.engine)) {
+    expandedEngines.value.push(db.engine)
+  }
+  if (db) {
+    await loadTables()
+  } else {
+    sqlStore.tables = []
+    history.value = []
+  }
+})
+
+async function executeQuery() {
+  if (!selectedDb.value || !queryText.value.trim()) return
+  try {
+    await sqlStore.runQuery(queryText.value, selectedDb.value)
+  } catch (error: any) {
+    console.error('Error executing query:', error)
+  }
+}
+
+function clear() {
+  sqlStore.clear()
+}
+
+function formatHistoryDate(timestamp: string) {
+  const date = new Date(timestamp)
+  return date.toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })
+}
+
+onMounted(async () => {
+  try {
+    await databaseStore.fetchDatabases()
+    await sqlStore.loadSelectedDatabase(databases.value)
+    if (databases.value.length > 0) {
+      expandedEngines.value = groupedDatabases.value
+    }
+    if (selectedDb.value) {
+      await sqlStore.fetchTables(selectedDb.value)
+    }
+  } catch (error) {
+    console.error('No se pudieron cargar las bases de datos para el editor SQL:', error)
+  }
+})
+</script>
+
+<style scoped>
+@keyframes floatParticle {
+  0%, 100% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-100px) translateX(50px) scale(1.5);
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.3;
+  }
+}
+
+.floating-particle {
+  animation: floatParticle infinite ease-in-out;
+}
+
+.fade-up-enter-active {
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-up-enter-from {
+  opacity: 0;
+  transform: translateY(30px) scale(0.95);
+}
+
+.fade-up-enter-to {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.expand-enter-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.expand-leave-active {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.expand-enter-from {
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(-10px);
+}
+
+.expand-leave-to {
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(-10px);
+}
+</style>
