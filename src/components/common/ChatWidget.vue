@@ -197,6 +197,7 @@ function localizeChatTexts() {
     { pattern: /start a chat\.? we're here to help you 24\/7\./i, replacement: 'Empecemos, estamos aquí para ayudarte 24/7.' },
     { pattern: /my name is (nathan|.*)\.? how can i assist you today\?/i, replacement: 'Soy ZenCloud, ¿cómo puedo ayudarte hoy?' },
     { pattern: /type your question\.\./i, replacement: 'Escribe tu pregunta...' },
+    { pattern: /type your message\.\./i, replacement: 'Escribe tu mensaje...' },
   ]
 
   const translateNodes = (root: Element) => {
@@ -364,7 +365,7 @@ function localizeChatTexts() {
 [id*="n8n-chat"] [class*="user-message"],
 #n8n-chat-container [class*="user-message"] *,
 [id*="n8n-chat"] [class*="user-message"] * {
-  color: #0f1014 !important;
+  color: #ffffff !important;
   font-weight: 600;
   mix-blend-mode: normal !important;
   opacity: 1 !important;
@@ -375,7 +376,7 @@ function localizeChatTexts() {
 [id*="n8n-chat"] .n8n-chat__message--user,
 #n8n-chat-container .n8n-chat__message--user *,
 [id*="n8n-chat"] .n8n-chat__message--user * {
-  color: #0f1014 !important;
+  color: #ffffff !important;
   mix-blend-mode: normal !important;
   opacity: 1 !important;
   text-shadow: none !important;
