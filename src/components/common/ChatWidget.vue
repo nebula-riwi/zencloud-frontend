@@ -31,7 +31,7 @@ function initializeChat() {
     setupMessageInterceptor()
     
     chatInstance = createChat({
-      webhookUrl: 'https://n8n.nebula.andrescortes.dev/webhook/2d3a2185-7e66-4e25-904b-fa642d24bdf2/chat',
+      webhookUrl: 'https://n8n.nebula.andrescortes.dev/webhook/aafc018b-3cf4-4333-bfc2-ed5cd23bb8bf/chat',
       metadata: {
         token: token.value,
         email: user.value.email,
