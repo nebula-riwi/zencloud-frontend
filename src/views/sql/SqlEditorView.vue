@@ -174,7 +174,7 @@
                   </div>
                   
                   <div class="p-3 rounded-lg bg-blue-500/5 border border-blue-500/20">
-                    <p class="text-xs text-blue-300 font-semibold mb-2">💡 Consejos:</p>
+                    <p class="text-xs text-blue-300 font-semibold mb-2">Consejos:</p>
                     <ul class="text-xs text-blue-200/80 space-y-1 list-disc list-inside">
                       <li>Verifica la sintaxis SQL para {{ selectedDb?.engine?.toUpperCase() }}</li>
                       <li>Consultas permitidas: SELECT, INSERT, UPDATE, DELETE, SHOW, etc.</li>
@@ -186,7 +186,7 @@
                 <!-- Success State with Data -->
                 <div v-else-if="results.data && results.data.length > 0" class="space-y-3">
                   <div class="flex items-center justify-between p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                    <span class="text-xs text-emerald-300">✓ Consulta ejecutada exitosamente</span>
+                    <span class="text-xs text-emerald-300">Consulta ejecutada exitosamente</span>
                     <span v-if="results.affectedRows !== undefined" class="text-xs text-emerald-400 font-semibold">
                       {{ results.affectedRows }} filas afectadas
                     </span>
@@ -215,7 +215,7 @@
                 <!-- Success State without Data -->
                 <div v-else-if="results.success" class="flex items-center justify-center h-full">
                   <div class="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                    <p class="text-emerald-300 text-sm">✓ Consulta ejecutada exitosamente</p>
+                    <p class="text-emerald-300 text-sm">Consulta ejecutada exitosamente</p>
                     <p v-if="results.affectedRows !== undefined" class="text-emerald-400/80 text-xs mt-1">
                       {{ results.affectedRows }} filas afectadas
                     </p>
@@ -256,7 +256,7 @@
                   :class="item.success ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border-amber-500/30'"
                   class="text-xs px-2 py-0.5"
                 >
-                  {{ item.success ? '✓ OK' : '⚠ Error' }}
+                  {{ item.success ? 'OK' : 'Error' }}
                 </Badge>
               </div>
               
@@ -391,22 +391,34 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Smooth scrollbar */
+/* Beautiful scrollbar with better visibility */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  margin: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(231, 138, 83, 0.3);
-  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(231, 138, 83, 0.7) 0%, rgba(245, 154, 99, 0.8) 100%);
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 10px rgba(231, 138, 83, 0.4);
+  transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(231, 138, 83, 0.5);
+  background: linear-gradient(180deg, rgba(231, 138, 83, 0.9) 0%, rgba(245, 154, 99, 1) 100%);
+  box-shadow: 0 0 15px rgba(231, 138, 83, 0.6), 0 0 25px rgba(231, 138, 83, 0.3);
+  border-color: rgba(231, 138, 83, 0.3);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, rgba(214, 122, 67, 1) 0%, rgba(231, 138, 83, 1) 100%);
+  box-shadow: 0 0 20px rgba(231, 138, 83, 0.8);
 }
 </style>
