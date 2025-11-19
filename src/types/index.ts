@@ -152,7 +152,6 @@ export interface Webhook {
 }
 
 export type WebhookEventType = 
-  | 'account_created'
   | 'account_updated'
   | 'database_created'
   | 'database_deleted'
@@ -163,6 +162,8 @@ export type WebhookEventType =
   | 'payment_failed'
   | 'user_login'
   | 'user_logout'
+  | 'payment_rejected'
+  | 'all_events'
 
 export interface WebhookTestResult {
   success: boolean
