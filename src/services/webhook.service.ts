@@ -27,7 +27,6 @@ export interface WebhookResponse {
 
 const mapEventType = (eventType: string): WebhookEventType => {
   const mapping: Record<string, WebhookEventType> = {
-    'AccountCreated': 'account_created',
     'AccountUpdated': 'account_updated',
     'DatabaseCreated': 'database_created',
     'DatabaseDeleted': 'database_deleted',
@@ -38,13 +37,14 @@ const mapEventType = (eventType: string): WebhookEventType => {
     'PaymentFailed': 'payment_failed',
     'UserLogin': 'user_login',
     'UserLogout': 'user_logout',
+    'PaymentRejected': 'payment_rejected',
+    'AllEvents': 'all_events',
   }
   return mapping[eventType] || 'database_created'
 }
 
 const mapEventTypeToBackend = (eventType: WebhookEventType): number => {
   const mapping: Record<WebhookEventType, number> = {
-    'account_created': 1,
     'account_updated': 2,
     'database_created': 3,
     'database_deleted': 4,
@@ -55,6 +55,8 @@ const mapEventTypeToBackend = (eventType: WebhookEventType): number => {
     'payment_failed': 9,
     'user_login': 10,
     'user_logout': 11,
+    'payment_rejected': 12,
+    'all_events': 999,
   }
   return mapping[eventType] || 3
 }

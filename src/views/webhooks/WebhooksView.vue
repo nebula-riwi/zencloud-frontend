@@ -220,52 +220,65 @@
               <!-- Event Type -->
               <div class="space-y-2">
                 <label class="block text-sm font-semibold text-white/90 transition-colors duration-200">
-                  Tipo de Evento
+                  Seleccionar Evento
                 </label>
                 <div class="relative group">
-                  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-transform duration-300 group-focus-within:scale-110 z-10">
-                    <svg class="h-5 w-5 text-white/40 transition-colors duration-300 group-focus-within:text-[#e78a53]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                  </div>
                   <button
                     type="button"
                     @click="showEventDropdown = !showEventDropdown"
                     :disabled="saving"
-                    class="w-full pl-12 pr-12 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:border-white/20 hover:bg-black/50 text-left text-sm relative"
+                    class="w-full px-4 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:border-white/20 hover:bg-black/50 text-left text-sm relative flex items-center justify-between"
                   >
-                    {{ getEventLabel(formData.eventType) }}
-                    <svg class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/60 transition-transform" :class="{ 'rotate-180': showEventDropdown }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span class="flex items-center gap-2">
+                      <svg class="h-4 w-4 text-[#e78a53]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      </svg>
+                      {{ getEventLabel(formData.eventType) }}
+                    </span>
+                    <svg class="h-5 w-5 text-white/60 transition-transform" :class="{ 'rotate-180': showEventDropdown }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-                  <div v-if="showEventDropdown" class="absolute z-50 w-full mt-2 rounded-xl bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/50 max-h-80 overflow-y-auto">
-                    <div class="p-2 space-y-1">
+                  <div v-if="showEventDropdown" class="absolute z-50 w-full mt-2 rounded-xl bg-[#0a0a0a]/98 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/50 max-h-96 overflow-hidden">
+                    <!-- Opción especial: Todos los eventos -->
+                    <div class="p-3 border-b border-white/10">
+                      <button type="button" @click="selectEvent('all_events')" :class="{ 'bg-[#e78a53]/20 border-[#e78a53]/50': formData.eventType === 'all_events' }" class="w-full px-4 py-3 text-left text-sm font-semibold text-white rounded-lg border-2 border-transparent hover:bg-[#e78a53]/10 hover:border-[#e78a53]/30 transition-all flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                          <svg class="h-5 w-5 text-[#e78a53]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          Todos los eventos
+                        </span>
+                        <span class="text-xs text-white/50">Recibe todo</span>
+                      </button>
+                    </div>
+                    
+                    <div class="p-2 space-y-1 max-h-80 overflow-y-auto">
                       <!-- Sesión -->
-                      <div class="px-3 py-2 text-xs font-semibold text-white/40 uppercase tracking-wider">Sesión</div>
-                      <button type="button" @click="selectEvent('user_login')" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/20 hover:text-[#e78a53] rounded-lg transition-colors">Inicio de sesión</button>
-                      <button type="button" @click="selectEvent('user_logout')" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/20 hover:text-[#e78a53] rounded-lg transition-colors">Cierre de sesión</button>
+                      <div class="px-3 py-2 text-xs font-bold text-white/60 uppercase tracking-widest">Sesión</div>
+                      <button type="button" @click="selectEvent('user_login')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'user_login' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Inicio de sesión</button>
+                      <button type="button" @click="selectEvent('user_logout')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'user_logout' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Cierre de sesión</button>
                       
                       <!-- Cuenta -->
-                      <div class="px-3 py-2 text-xs font-semibold text-white/40 uppercase tracking-wider mt-2">Cuenta</div>
-                      <button type="button" @click="selectEvent('account_created')" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/20 hover:text-[#e78a53] rounded-lg transition-colors">Cuenta creada</button>
-                      <button type="button" @click="selectEvent('account_updated')" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/20 hover:text-[#e78a53] rounded-lg transition-colors">Cuenta actualizada</button>
+                      <div class="px-3 py-2 text-xs font-bold text-white/60 uppercase tracking-widest mt-2">Cuenta</div>
+                      <button type="button" @click="selectEvent('account_updated')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'account_updated' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Cuenta actualizada</button>
                       
                       <!-- Bases de Datos -->
-                      <div class="px-3 py-2 text-xs font-semibold text-white/40 uppercase tracking-wider mt-2">Bases de Datos</div>
-                      <button type="button" @click="selectEvent('database_created')" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/20 hover:text-[#e78a53] rounded-lg transition-colors">Base de datos creada</button>
-                      <button type="button" @click="selectEvent('database_deleted')" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/20 hover:text-[#e78a53] rounded-lg transition-colors">Base de datos eliminada</button>
-                      <button type="button" @click="selectEvent('database_status_changed')" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/20 hover:text-[#e78a53] rounded-lg transition-colors">Estado de BD cambiado</button>
+                      <div class="px-3 py-2 text-xs font-bold text-white/60 uppercase tracking-widest mt-2">Bases de Datos</div>
+                      <button type="button" @click="selectEvent('database_created')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'database_created' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Base de datos creada</button>
+                      <button type="button" @click="selectEvent('database_deleted')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'database_deleted' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Base de datos eliminada</button>
+                      <button type="button" @click="selectEvent('database_status_changed')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'database_status_changed' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Estado de BD cambiado</button>
                       
                       <!-- Suscripciones -->
-                      <div class="px-3 py-2 text-xs font-semibold text-white/40 uppercase tracking-wider mt-2">Suscripciones</div>
-                      <button type="button" @click="selectEvent('subscription_created')" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/20 hover:text-[#e78a53] rounded-lg transition-colors">Suscripción creada</button>
-                      <button type="button" @click="selectEvent('subscription_expired')" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/20 hover:text-[#e78a53] rounded-lg transition-colors">Suscripción expirada</button>
+                      <div class="px-3 py-2 text-xs font-bold text-white/60 uppercase tracking-widest mt-2">Suscripciones</div>
+                      <button type="button" @click="selectEvent('subscription_created')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'subscription_created' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Suscripción creada</button>
+                      <button type="button" @click="selectEvent('subscription_expired')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'subscription_expired' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Suscripción expirada</button>
                       
                       <!-- Pagos -->
-                      <div class="px-3 py-2 text-xs font-semibold text-white/40 uppercase tracking-wider mt-2">Pagos</div>
-                      <button type="button" @click="selectEvent('payment_received')" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/20 hover:text-[#e78a53] rounded-lg transition-colors">Pago recibido</button>
-                      <button type="button" @click="selectEvent('payment_failed')" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/20 hover:text-[#e78a53] rounded-lg transition-colors">Pago fallido</button>
+                      <div class="px-3 py-2 text-xs font-bold text-white/60 uppercase tracking-widest mt-2">Pagos</div>
+                      <button type="button" @click="selectEvent('payment_received')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'payment_received' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Pago recibido</button>
+                      <button type="button" @click="selectEvent('payment_failed')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'payment_failed' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Pago fallido</button>
+                      <button type="button" @click="selectEvent('payment_rejected')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'payment_rejected' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Pago rechazado</button>
                     </div>
                   </div>
                 </div>
@@ -355,7 +368,6 @@ const formData = reactive({
 
 function getEventLabel(eventType: WebhookEventType): string {
   const labels: Record<WebhookEventType, string> = {
-    account_created: 'Cuenta creada',
     account_updated: 'Cuenta actualizada',
     database_created: 'Base de datos creada',
     database_deleted: 'Base de datos eliminada',
@@ -366,6 +378,8 @@ function getEventLabel(eventType: WebhookEventType): string {
     payment_failed: 'Pago fallido',
     user_login: 'Inicio de sesión',
     user_logout: 'Cierre de sesión',
+    payment_rejected: 'Pago rechazado',
+    all_events: 'Todos los eventos',
   }
   return labels[eventType] || eventType
 }
