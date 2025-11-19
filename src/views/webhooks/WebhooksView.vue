@@ -219,68 +219,23 @@
 
               <!-- Event Type -->
               <div class="space-y-2">
-                <label class="block text-sm font-semibold text-white/90 transition-colors duration-200">
-                  Seleccionar Evento
+                <label for="webhook-event" class="block text-sm font-semibold text-white/90 transition-colors duration-200">
+                  Tipo de Evento
                 </label>
                 <div class="relative group">
-                  <button
-                    type="button"
-                    @click="showEventDropdown = !showEventDropdown"
-                    :disabled="saving"
-                    class="w-full px-4 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:border-white/20 hover:bg-black/50 text-left text-sm relative flex items-center justify-between"
-                  >
-                    <span class="flex items-center gap-2">
-                      <svg class="h-4 w-4 text-[#e78a53]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                      </svg>
-                      {{ getEventLabel(formData.eventType) }}
-                    </span>
-                    <svg class="h-5 w-5 text-white/60 transition-transform" :class="{ 'rotate-180': showEventDropdown }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-transform duration-300 group-focus-within:scale-110 z-10">
+                    <svg class="h-5 w-5 text-white/40 transition-colors duration-300 group-focus-within:text-[#e78a53]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
-                  </button>
-                  <div v-if="showEventDropdown" class="absolute z-50 w-full mt-2 rounded-xl bg-[#0a0a0a]/98 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/50 max-h-96 overflow-hidden">
-                    <!-- Opción especial: Todos los eventos -->
-                    <div class="p-3 border-b border-white/10">
-                      <button type="button" @click="selectEvent('all_events')" :class="{ 'bg-[#e78a53]/20 border-[#e78a53]/50': formData.eventType === 'all_events' }" class="w-full px-4 py-3 text-left text-sm font-semibold text-white rounded-lg border-2 border-transparent hover:bg-[#e78a53]/10 hover:border-[#e78a53]/30 transition-all flex items-center justify-between">
-                        <span class="flex items-center gap-2">
-                          <svg class="h-5 w-5 text-[#e78a53]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                          Todos los eventos
-                        </span>
-                        <span class="text-xs text-white/50">Recibe todo</span>
-                      </button>
-                    </div>
-                    
-                    <div class="p-2 space-y-1 max-h-80 overflow-y-auto">
-                      <!-- Sesión -->
-                      <div class="px-3 py-2 text-xs font-bold text-white/60 uppercase tracking-widest">Sesión</div>
-                      <button type="button" @click="selectEvent('user_login')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'user_login' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Inicio de sesión</button>
-                      <button type="button" @click="selectEvent('user_logout')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'user_logout' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Cierre de sesión</button>
-                      
-                      <!-- Cuenta -->
-                      <div class="px-3 py-2 text-xs font-bold text-white/60 uppercase tracking-widest mt-2">Cuenta</div>
-                      <button type="button" @click="selectEvent('account_updated')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'account_updated' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Cuenta actualizada</button>
-                      
-                      <!-- Bases de Datos -->
-                      <div class="px-3 py-2 text-xs font-bold text-white/60 uppercase tracking-widest mt-2">Bases de Datos</div>
-                      <button type="button" @click="selectEvent('database_created')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'database_created' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Base de datos creada</button>
-                      <button type="button" @click="selectEvent('database_deleted')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'database_deleted' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Base de datos eliminada</button>
-                      <button type="button" @click="selectEvent('database_status_changed')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'database_status_changed' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Estado de BD cambiado</button>
-                      
-                      <!-- Suscripciones -->
-                      <div class="px-3 py-2 text-xs font-bold text-white/60 uppercase tracking-widest mt-2">Suscripciones</div>
-                      <button type="button" @click="selectEvent('subscription_created')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'subscription_created' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Suscripción creada</button>
-                      <button type="button" @click="selectEvent('subscription_expired')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'subscription_expired' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Suscripción expirada</button>
-                      
-                      <!-- Pagos -->
-                      <div class="px-3 py-2 text-xs font-bold text-white/60 uppercase tracking-widest mt-2">Pagos</div>
-                      <button type="button" @click="selectEvent('payment_received')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'payment_received' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Pago recibido</button>
-                      <button type="button" @click="selectEvent('payment_failed')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'payment_failed' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Pago fallido</button>
-                      <button type="button" @click="selectEvent('payment_rejected')" :class="{ 'bg-[#e78a53]/20': formData.eventType === 'payment_rejected' }" class="w-full px-4 py-2.5 text-left text-sm text-white/90 hover:bg-[#e78a53]/10 rounded-lg transition-colors">Pago rechazado</button>
-                    </div>
                   </div>
+                  <CustomSelect
+                    id="webhook-event"
+                    v-model="formData.eventType"
+                    :options="eventOptions"
+                    placeholder="Selecciona un evento"
+                    :disabled="saving"
+                    class="!pl-12 !pr-12 !py-3.5 uppercase tracking-[0.14em] text-[11px] font-semibold"
+                  />
                 </div>
           </div>
 
@@ -344,6 +299,7 @@ import Loading from '@/components/ui/Loading.vue'
 import Dialog from '@/components/ui/Dialog.vue'
 import Switch from '@/components/ui/Switch.vue'
 import AlertDialog from '@/components/ui/AlertDialog.vue'
+import CustomSelect from '@/components/ui/CustomSelect.vue'
 import { Webhook as WebhookIcon, Plus } from 'lucide-vue-next'
 import type { Webhook, WebhookEventType } from '@/types'
 import { storeToRefs } from 'pinia'
@@ -357,7 +313,6 @@ const editingWebhook = ref<Webhook | null>(null)
 const showDeleteDialog = ref(false)
 const webhookToDelete = ref<string | null>(null)
 const saving = ref(false)
-const showEventDropdown = ref(false)
 
 const formData = reactive({
   name: '',
@@ -365,6 +320,21 @@ const formData = reactive({
   eventType: 'database_created' as WebhookEventType,
   active: true,
 })
+
+const eventOptions = [
+  { value: 'all_events' as WebhookEventType, label: 'Todos los eventos' },
+  { value: 'user_login' as WebhookEventType, label: 'Inicio de sesión' },
+  { value: 'user_logout' as WebhookEventType, label: 'Cierre de sesión' },
+  { value: 'account_updated' as WebhookEventType, label: 'Cuenta actualizada' },
+  { value: 'database_created' as WebhookEventType, label: 'Base de datos creada' },
+  { value: 'database_deleted' as WebhookEventType, label: 'Base de datos eliminada' },
+  { value: 'database_status_changed' as WebhookEventType, label: 'Estado de BD cambiado' },
+  { value: 'subscription_created' as WebhookEventType, label: 'Suscripción creada' },
+  { value: 'subscription_expired' as WebhookEventType, label: 'Suscripción expirada' },
+  { value: 'payment_received' as WebhookEventType, label: 'Pago recibido' },
+  { value: 'payment_failed' as WebhookEventType, label: 'Pago fallido' },
+  { value: 'payment_rejected' as WebhookEventType, label: 'Pago rechazado' },
+]
 
 function getEventLabel(eventType: WebhookEventType): string {
   const labels: Record<WebhookEventType, string> = {
@@ -392,11 +362,6 @@ function editWebhook(webhook: Webhook) {
   formData.active = webhook.active
 }
 
-function selectEvent(event: WebhookEventType) {
-  formData.eventType = event
-  showEventDropdown.value = false
-}
-
 function closeModal() {
   showCreateModal.value = false
   editingWebhook.value = null
@@ -404,7 +369,6 @@ function closeModal() {
   formData.url = ''
   formData.eventType = 'database_created'
   formData.active = true
-  showEventDropdown.value = false
 }
 
 async function handleSave() {
