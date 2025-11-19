@@ -23,7 +23,7 @@
           </CardHeader>
           <CardContent class="p-4 space-y-4 max-h-[600px] overflow-y-auto">
             <p v-if="databases.length > sqlDatabases.length" class="text-xs text-white/50">
-              Mostrando solo MySQL y PostgreSQL
+              Mostrando solo MySQL, PostgreSQL y SQL Server
             </p>
             <div v-if="sqlDatabases.length === 0" class="text-center text-white/50 text-sm py-8">
               No hay bases de datos SQL
@@ -308,7 +308,7 @@ const { databases } = storeToRefs(databaseStore)
 const { selectedDb, queryText, isRunning, results, tables, loadingTables, history } = storeToRefs(sqlStore)
 
 const expandedEngines = ref<string[]>([])
-const SQL_ENGINES: DatabaseEngine[] = ['mysql', 'postgresql']
+const SQL_ENGINES: DatabaseEngine[] = ['mysql', 'postgresql', 'sqlserver']
 
 const sqlDatabases = computed(() => databases.value.filter((db) => SQL_ENGINES.includes(db.engine)))
 
