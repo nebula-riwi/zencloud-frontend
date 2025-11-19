@@ -151,7 +151,16 @@ export interface Webhook {
   updatedAt?: string
 }
 
-export type WebhookEventType = 'database_created' | 'account_created' | 'production_error'
+export type WebhookEventType = 
+  | 'account_created'
+  | 'account_updated'
+  | 'database_created'
+  | 'database_deleted'
+  | 'database_status_changed'
+  | 'subscription_created'
+  | 'subscription_expired'
+  | 'payment_received'
+  | 'payment_failed'
 
 export interface WebhookTestResult {
   success: boolean

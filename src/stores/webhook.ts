@@ -8,22 +8,18 @@ export const useWebhookStore = defineStore('webhook', () => {
   const loading = ref(false)
 
   async function fetchWebhooks(): Promise<Webhook[]> {
-    // Webhooks deshabilitados temporalmente
-    loading.value = false
-    webhooks.value = []
-    return []
-    // loading.value = true
-    // try {
-    //   const data = await webhookService.fetchWebhooks()
-    //   webhooks.value = data
-    //   return data
-    // } catch (error) {
-    //   console.error('Error fetching webhooks:', error)
-    //   webhooks.value = []
-    //   return []
-    // } finally {
-    //   loading.value = false
-    // }
+    loading.value = true
+    try {
+      const data = await webhookService.fetchWebhooks()
+      webhooks.value = data
+      return data
+    } catch (error) {
+      console.error('Error fetching webhooks:', error)
+      webhooks.value = []
+      return []
+    } finally {
+      loading.value = false
+    }
   }
 
   async function createWebhook(data: {

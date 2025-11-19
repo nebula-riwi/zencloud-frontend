@@ -92,6 +92,17 @@
                       <Button 
                         variant="outline" 
                         size="sm" 
+                        @click="testWebhook(webhook.id)"
+                        class="border-white/10 hover:border-emerald-500/40 hover:text-emerald-300"
+                        title="Probar webhook"
+                      >
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
                         @click="editWebhook(webhook)"
                         class="border-white/10 hover:border-[#e78a53]/40"
                       >
@@ -222,11 +233,25 @@
                     v-model="formData.eventType"
                     required
                     :disabled="saving"
-                    class="w-full pl-12 pr-12 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:border-white/20 hover:bg-black/50 focus:scale-[1.02] focus:shadow-lg focus:shadow-[#e78a53]/20 uppercase tracking-[0.14em] text-[11px] font-semibold"
+                    class="w-full pl-12 pr-12 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#e78a53]/50 focus:border-[#e78a53]/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:border-white/20 hover:bg-black/50 focus:scale-[1.02] focus:shadow-lg focus:shadow-[#e78a53]/20 text-sm"
                   >
-                    <option value="database_created">Base de datos creada</option>
-                    <option value="account_created">Cuenta creada</option>
-                    <option value="production_error">Error de producción</option>
+                    <optgroup label="Cuenta">
+                      <option value="account_created">Cuenta creada</option>
+                      <option value="account_updated">Cuenta actualizada</option>
+                    </optgroup>
+                    <optgroup label="Bases de Datos">
+                      <option value="database_created">Base de datos creada</option>
+                      <option value="database_deleted">Base de datos eliminada</option>
+                      <option value="database_status_changed">Estado de BD cambiado</option>
+                    </optgroup>
+                    <optgroup label="Suscripciones">
+                      <option value="subscription_created">Suscripción creada</option>
+                      <option value="subscription_expired">Suscripción expirada</option>
+                    </optgroup>
+                    <optgroup label="Pagos">
+                      <option value="payment_received">Pago recibido</option>
+                      <option value="payment_failed">Pago fallido</option>
+                    </optgroup>
                   </Select>
                 </div>
           </div>
@@ -315,9 +340,15 @@ const formData = reactive({
 
 function getEventLabel(eventType: WebhookEventType): string {
   const labels: Record<WebhookEventType, string> = {
-    database_created: 'Base de datos creada',
     account_created: 'Cuenta creada',
-    production_error: 'Error de producción',
+    account_updated: 'Cuenta actualizada',
+    database_created: 'Base de datos creada',
+    database_deleted: 'Base de datos eliminada',
+    database_status_changed: 'Estado de BD cambiado',
+    subscription_created: 'Suscripción creada',
+    subscription_expired: 'Suscripción expirada',
+    payment_received: 'Pago recibido',
+    payment_failed: 'Pago fallido',
   }
   return labels[eventType] || eventType
 }
@@ -382,14 +413,25 @@ async function handleDelete() {
   webhookToDelete.value = null
 }
 
+async function testWebhook(id: string) {
+  try {
+    const result = await webhookStore.testWebhook(id)
+    if (result.success) {
+      toastStore.success('Test exitoso', result.message)
+    } else {
+      toastStore.error('Error en test', result.message)
+    }
+  } catch (error: any) {
+    toastStore.error('Error', 'No se pudo probar el webhook')
+  }
+}
+
 onMounted(async () => {
-  // Webhooks deshabilitados temporalmente
-  // try {
-  //   await webhookStore.fetchWebhooks()
-  // } catch (error) {
-  //   console.log('Webhooks deshabilitados temporalmente')
-  // }
-  webhooks.value = [] // Mostrar lista vacía
+  try {
+    await webhookStore.fetchWebhooks()
+  } catch (error) {
+    console.error('Error cargando webhooks:', error)
+  }
 })
 </script>
 
