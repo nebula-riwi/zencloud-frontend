@@ -165,12 +165,6 @@ export type WebhookEventType =
   | 'payment_rejected'
   | 'all_events'
 
-export interface WebhookTestResult {
-  success: boolean
-  message: string
-  statusCode?: number
-}
-
 export interface SqlQuery {
   dbId: string
   engine: DatabaseEngine
