@@ -19,27 +19,41 @@ let originalXHRSend: typeof XMLHttpRequest.prototype.send | null = null
 
 function initializeChat() {
   if (!isAuthenticated.value || !token.value || !user.value) {
+    console.log('ChatWidget: Usuario no autenticado, no se inicializa chat')
     return
   }
 
   if (chatInstance) {
+    console.log('ChatWidget: Chat ya está inicializado')
     return // Ya está inicializado
   }
 
   try {
+    console.log('ChatWidget: Inicializando chat...')
     // Interceptar peticiones HTTP antes de inicializar el chat
     setupMessageInterceptor()
     
+    // Crear chat sin target ni mode - n8n creará su propio botón flotante
     chatInstance = createChat({
       webhookUrl: 'https://n8n.nebula.andrescortes.dev/webhook/2d3a2185-7e66-4e25-904b-fa642d24bdf2/chat',
+      initialMessages: [
+        '¡Hola! 👋',
+        'Soy ZenCloud, ¿cómo puedo ayudarte hoy?'
+      ],
       metadata: {
         token: token.value,
         email: user.value.email,
         source: 'web_platform'
       }
     })
+    
     console.log('ChatWidget: Chat inicializado correctamente')
-    localizeChatTexts()
+    
+    // Aplicar traducciones después de un pequeño delay
+    setTimeout(() => {
+      localizeChatTexts()
+      console.log('ChatWidget: Traducciones aplicadas')
+    }, 1000)
   } catch (error) {
     console.error('ChatWidget: Error inicializando chat:', error)
   }
@@ -196,8 +210,11 @@ function localizeChatTexts() {
     { pattern: /hi there!? 👋?/i, replacement: '¡Hola! 👋' },
     { pattern: /start a chat\.? we're here to help you 24\/7\./i, replacement: 'Empecemos, estamos aquí para ayudarte 24/7.' },
     { pattern: /my name is (nathan|.*)\.? how can i assist you today\?/i, replacement: 'Soy ZenCloud, ¿cómo puedo ayudarte hoy?' },
-    { pattern: /type your question\.\./i, replacement: 'Escribe tu pregunta...' },
-    { pattern: /type your message\.\./i, replacement: 'Escribe tu mensaje...' },
+    { pattern: /type your question\.\.\./i, replacement: 'Escribe tu pregunta...' },
+    { pattern: /type your message\.\.\./i, replacement: 'Escribe tu mensaje...' },
+    { pattern: /type your question/i, replacement: 'Escribe tu pregunta' },
+    { pattern: /send message/i, replacement: 'Enviar mensaje' },
+    { pattern: /send/i, replacement: 'Enviar' },
   ]
 
   const translateNodes = (root: Element) => {
@@ -254,24 +271,17 @@ function localizeChatTexts() {
 :root {
   /* Colores principales - Tema ZenCloud (naranja) */
   --chat--color--primary: #e78a53;
-  --chat--color--primary-shade-50: #f59a63;
-  --chat--color--primary--shade-100: #d67a43;
-  
-  /* Color secundario - Usar un tono complementario */
-  --chat--color--secondary: #e78a53;
-  --chat--color-secondary-shade-50: #f59a63;
-  
-  /* Colores base - Tema oscuro */
+  --chat--color--primary-shade-50: rgba(231, 138, 83, 0.05);
+  --chat--color--primary--shade-100: rgba(231, 138, 83, 0.1);
+  --chat--color-secondary: #f59a63;
   --chat--color-white: #ffffff;
-  --chat--color-light: #f2f4f8;
-  --chat--color-light-shade-50: #e6e9f1;
-  --chat--color-light-shade-100: #c2c5cc;
-  --chat--color-medium: #d2d4d9;
-  --chat--color-dark: #000000;
-  --chat--color-disabled: #777980;
-  --chat--color-typing: #404040;
+  --chat--color-light: #f4f4f4;
+  --chat--color-light-shade-50: #fafafa;
+  --chat--color-light-shade-100: #e0e0e0;
+  --chat--color-medium: #a0a0a0;
+  --chat--color-dark: #0f1014;
   
-  /* Espaciado y bordes */
+  /* Espaciado */
   --chat--spacing: 1rem;
   --chat--border-radius: 0.75rem;
   --chat--transition-duration: 0.3s;
@@ -303,14 +313,14 @@ function localizeChatTexts() {
   --chat--message-line-height: 1.6;
   
   /* Mensajes del bot - Fondo oscuro */
-  --chat--message--bot--background: rgba(255, 255, 255, 0.05);
-  --chat--message--bot--color: rgba(0, 0, 0, 0.9);
+  --chat--message--bot--background: rgba(255, 255, 255, 0.08);
+  --chat--message--bot--color: #000000;
   --chat--message--bot--border: 1px solid rgba(231, 138, 83, 0.2);
   
-  /* Mensajes del usuario - Naranja */
-  --chat--message--user--background: linear-gradient(135deg, #e78a53 0%, #f59a63 100%);
-  --chat--message--user--color: var(--chat--color-white);
-  --chat--message--user--border: none;
+  /* Mensajes del usuario - MISMO FONDO, COLOR NEGRO Y BORDE NARANJA */
+  --chat--message--user--background: rgba(255, 255, 255, 0.08);
+  --chat--message--user--color: #000000;
+  --chat--message--user--border: 1px solid rgba(231, 138, 83, 0.3);
   
   /* Pre (código) */
   --chat--message--pre--background: rgba(0, 0, 0, 0.3);
@@ -321,6 +331,10 @@ function localizeChatTexts() {
   --chat--toggle--active--background: linear-gradient(135deg, #d67a43 0%, #e78a53 100%);
   --chat--toggle--color: var(--chat--color-white);
   --chat--toggle--size: 64px;
+  
+  /* Variables adicionales para texto */
+  --chat--input--text-color: #000000;
+  --chat--text--color: #000000;
 }
 
 /* Aplicar tema oscuro al contenedor del chat */
@@ -342,95 +356,130 @@ function localizeChatTexts() {
   letter-spacing: 0.015em;
 }
 
+/* Input de texto - NEGRO SÓLIDO y placeholder también negro */
 #n8n-chat-container input,
 #n8n-chat-container textarea,
 [id*="n8n-chat"] input,
-[id*="n8n-chat"] textarea {
-  color: #0f1014 !important;
+[id*="n8n-chat"] textarea,
+div[id*="n8n"] input,
+div[id*="n8n"] textarea {
+  color: #000000 !important;
+  font-weight: 600 !important;
+  -webkit-text-fill-color: #000000 !important;
 }
 
-#n8n-chat-container input::placeholder,
-#n8n-chat-container textarea::placeholder,
-[id*="n8n-chat"] input::placeholder,
-[id*="n8n-chat"] textarea::placeholder,
-#n8n-chat-container input[data-placeholder],
-#n8n-chat-container textarea[data-placeholder],
-[id*="n8n-chat"] input[data-placeholder],
-[id*="n8n-chat"] textarea[data-placeholder] {
-  content: attr(data-placeholder);
-  color: rgba(15, 16, 20, 0.5) !important;
-}
-
-#n8n-chat-container [class*="user-message"],
-[id*="n8n-chat"] [class*="user-message"],
-#n8n-chat-container [class*="user-message"] *,
-[id*="n8n-chat"] [class*="user-message"] * {
-  color: #0f1014 !important;
-  font-weight: 600;
-  mix-blend-mode: normal !important;
-  opacity: 1 !important;
-  text-shadow: none !important;
-}
-
-#n8n-chat-container .n8n-chat__message--user,
-[id*="n8n-chat"] .n8n-chat__message--user,
-#n8n-chat-container .n8n-chat__message--user *,
-[id*="n8n-chat"] .n8n-chat__message--user * {
-  color: #0f1014 !important;
-  mix-blend-mode: normal !important;
-  opacity: 1 !important;
-  text-shadow: none !important;
-}
-
-#n8n-chat-container .n8n-chat__message--bot,
-[id*="n8n-chat"] .n8n-chat__message--bot,
-#n8n-chat-container .n8n-chat__message--bot *,
-[id*="n8n-chat"] .n8n-chat__message--bot *,
-#n8n-chat-container .n8n-chat__message--bot p,
-#n8n-chat-container .n8n-chat__message--bot span,
-#n8n-chat-container .n8n-chat__message--bot div,
-[id*="n8n-chat"] .n8n-chat__message--bot p,
-[id*="n8n-chat"] .n8n-chat__message--bot span,
-[id*="n8n-chat"] .n8n-chat__message--bot div {
-  color: #0f1014 !important;
-  mix-blend-mode: normal !important;
-  opacity: 1 !important;
-  text-shadow: none !important;
-}
-
-#n8n-chat-container [class*="bot-message"],
-[id*="n8n-chat"] [class*="bot-message"],
-#n8n-chat-container [class*="bot-message"] *,
-[id*="n8n-chat"] [class*="bot-message"] *,
-#n8n-chat-container [class*="from-bot"],
-[id*="n8n-chat"] [class*="from-bot"],
-#n8n-chat-container [class*="from-bot"] *,
-[id*="n8n-chat"] [class*="from-bot"] * {
-  color: #0f1014 !important;
-  mix-blend-mode: normal !important;
-  opacity: 1 !important;
-  text-shadow: none !important;
-}
-
-/* Forzar color negro en párrafos del bot */
-#n8n-chat-container .chat-message-from-bot p,
-[id*="n8n-chat"] .chat-message-from-bot p,
-#n8n-chat-container .chat-message-markdown p,
-[id*="n8n-chat"] .chat-message-markdown p {
-  color: #0f1014 !important;
-}
-
-#n8n-chat-container input,
-#n8n-chat-container textarea,
-[id*="n8n-chat"] input,
-[id*="n8n-chat"] textarea {
-  color: #0f1014 !important;
-}
-
+/* Placeholder en NEGRO también */
 #n8n-chat-container input::placeholder,
 #n8n-chat-container textarea::placeholder,
 [id*="n8n-chat"] input::placeholder,
 [id*="n8n-chat"] textarea::placeholder {
-  color: rgba(15, 16, 20, 0.5) !important;
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  opacity: 0.6 !important;
+}
+
+/* Mensajes del usuario - FONDO Y BORDE NARANJA */
+#n8n-chat-container [class*="user-message"],
+[id*="n8n-chat"] [class*="user-message"],
+#n8n-chat-container .n8n-chat__message--user,
+[id*="n8n-chat"] .n8n-chat__message--user,
+div[class*="ChatMessage"] div[class*="user"],
+div[class*="message-user"] {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(231, 138, 83, 0.3) !important;
+}
+
+/* Texto del usuario NEGRO con MÁXIMA especificidad */
+div[class*="chat-message"] p,
+div.chat-message-markdown p,
+#n8n-chat-container [class*="user-message"],
+[id*="n8n-chat"] [class*="user-message"],
+#n8n-chat-container [class*="user-message"] *,
+[id*="n8n-chat"] [class*="user-message"] *,
+#n8n-chat-container .n8n-chat__message--user,
+[id*="n8n-chat"] .n8n-chat__message--user,
+#n8n-chat-container .n8n-chat__message--user *,
+[id*="n8n-chat"] .n8n-chat__message--user *,
+#n8n-chat-container .n8n-chat__message--user p,
+#n8n-chat-container .n8n-chat__message--user span,
+#n8n-chat-container .n8n-chat__message--user div,
+[id*="n8n-chat"] .n8n-chat__message--user p,
+[id*="n8n-chat"] .n8n-chat__message--user span,
+[id*="n8n-chat"] .n8n-chat__message--user div,
+div[class*="message-user"],
+div[class*="message-user"] *,
+div[class*="message-user"] p,
+div[class*="message-user"] span,
+[class*="from-user"] p,
+[class*="from-user"] span,
+p[class*="user"],
+span[class*="user"] {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+/* Mensajes del bot - FONDO Y BORDE NARANJA */
+#n8n-chat-container .n8n-chat__message--bot,
+[id*="n8n-chat"] .n8n-chat__message--bot,
+#n8n-chat-container [class*="bot-message"],
+[id*="n8n-chat"] [class*="bot-message"] {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(231, 138, 83, 0.3) !important;
+}
+
+/* Texto del bot negro */
+#n8n-chat-container .n8n-chat__message--bot *,
+[id*="n8n-chat"] .n8n-chat__message--bot *,
+#n8n-chat-container [class*="bot-message"] *,
+[id*="n8n-chat"] [class*="bot-message"] * {
+  color: #0f1014 !important;
+}
+
+
+/* === ESTILOS MINIMALISTAS - SOLO COLORES DE MARCA === */
+
+/* Botón flotante - colores ZenCloud */
+#n8n-chat-container button,
+[id*="n8n-chat"] button,
+button[class*="n8n-chat"] {
+  background: linear-gradient(135deg, #e78a53 0%, #f59a63 100%) !important;
+  box-shadow: 0 4px 12px rgba(231, 138, 83, 0.4) !important;
+}
+
+#n8n-chat-container button:hover,
+[id*="n8n-chat"] button:hover {
+  box-shadow: 0 6px 16px rgba(231, 138, 83, 0.5) !important;
+}
+
+/* Icono del botón de enviar - blanco */
+#n8n-chat-container button svg,
+[id*="n8n-chat"] button svg,
+#n8n-chat-container button path,
+[id*="n8n-chat"] button path,
+#n8n-chat-container button[type="submit"] svg,
+[id*="n8n-chat"] button[type="submit"] svg,
+#n8n-chat-container [class*="send"] svg,
+[id*="n8n-chat"] [class*="send"] svg {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Header con colores de marca */
+#n8n-chat-container [class*="header"],
+[id*="n8n-chat"] [class*="header"] {
+  background: linear-gradient(135deg, #e78a53 0%, #f59a63 100%) !important;
+}
+
+/* Scrollbar con estilo de la app */
+#n8n-chat-container ::-webkit-scrollbar,
+[id*="n8n-chat"] ::-webkit-scrollbar {
+  width: 8px;
+}
+
+#n8n-chat-container ::-webkit-scrollbar-thumb,
+[id*="n8n-chat"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(231, 138, 83, 0.6) 0%, rgba(245, 154, 99, 0.7) 100%);
+  border-radius: 10px;
 }
 </style>
