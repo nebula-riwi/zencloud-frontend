@@ -161,6 +161,8 @@ export type WebhookEventType =
   | 'subscription_expired'
   | 'payment_received'
   | 'payment_failed'
+  | 'user_login'
+  | 'user_logout'
 
 export interface WebhookTestResult {
   success: boolean

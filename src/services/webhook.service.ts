@@ -36,6 +36,8 @@ const mapEventType = (eventType: string): WebhookEventType => {
     'SubscriptionExpired': 'subscription_expired',
     'PaymentReceived': 'payment_received',
     'PaymentFailed': 'payment_failed',
+    'UserLogin': 'user_login',
+    'UserLogout': 'user_logout',
   }
   return mapping[eventType] || 'database_created'
 }
@@ -51,6 +53,8 @@ const mapEventTypeToBackend = (eventType: WebhookEventType): number => {
     'subscription_expired': 7,
     'payment_received': 8,
     'payment_failed': 9,
+    'user_login': 10,
+    'user_logout': 11,
   }
   return mapping[eventType] || 3
 }
