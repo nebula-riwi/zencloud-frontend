@@ -351,7 +351,7 @@ const databaseToDeactivate = ref<string | null>(null)
 const databaseToActivate = ref<string | null>(null)
 
 const exportingDbId = ref<string | null>(null)
-const exportableEngines: DatabaseEngine[] = ['mysql', 'postgresql']
+const exportableEngines: DatabaseEngine[] = ['mysql', 'postgresql', 'sqlserver']
 
 const filteredDatabases = computed(() => {
   if (selectedEngine.value === 'all') return databases.value
