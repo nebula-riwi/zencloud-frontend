@@ -61,73 +61,72 @@
               </Button>
             </div>
 
-            <div v-else class="space-y-4">
-              <Card 
+            <div v-else class="grid gap-6">
+              <div 
                 v-for="webhook in webhooks" 
                 :key="webhook.id" 
-                class="group relative overflow-hidden border-white/10 hover:border-[#e78a53]/40 transition-colors duration-300"
+                class="group relative rounded-2xl border border-white/10 bg-gradient-to-br from-black/60 via-black/40 to-black/60 backdrop-blur-xl overflow-hidden hover:border-[#e78a53]/30 transition-all duration-500 hover:shadow-2xl hover:shadow-[#e78a53]/10"
               >
-                <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/0 to-[#e78a53]/0 group-hover:from-[#e78a53]/5 group-hover:to-transparent transition-all duration-300"></div>
-                <CardHeader class="relative z-10">
-                  <div class="flex items-start justify-between">
-                    <div class="flex-1 space-y-3">
+                <!-- Gradient overlay on hover -->
+                <div class="absolute inset-0 bg-gradient-to-br from-[#e78a53]/0 via-[#e78a53]/0 to-[#e78a53]/0 group-hover:from-[#e78a53]/10 group-hover:via-[#e78a53]/5 group-hover:to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                <!-- Content -->
+                <div class="relative z-10 p-6">
+                  <div class="flex items-start justify-between gap-6">
+                    <!-- Info section -->
+                    <div class="flex-1 space-y-4">
+                      <!-- Name and status -->
                       <div class="flex items-center gap-3">
-                        <CardTitle class="text-xl text-white" style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);">{{ webhook.name }}</CardTitle>
-                        <Badge 
-                          :variant="webhook.active ? 'success' : 'warning'" 
-                          class="shadow-lg"
-                        >
-                          {{ webhook.active ? 'Activo' : 'Inactivo' }}
-                        </Badge>
+                        <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-[#e78a53]/20 to-[#e78a53]/10 border border-[#e78a53]/20">
+                          <WebhookIcon class="h-5 w-5 text-[#e78a53]" />
+                        </div>
+                        <div class="flex-1">
+                          <h3 class="text-xl font-bold text-white mb-1" style="text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);">{{ webhook.name }}</h3>
+                          <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 text-xs font-medium px-2.5 py-1 rounded-full" :class="webhook.active ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'">
+                              <div class="w-1.5 h-1.5 rounded-full" :class="webhook.active ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'"></div>
+                              {{ webhook.active ? 'Activo' : 'Inactivo' }}
+                            </div>
+                            <div class="text-xs text-white/40">{{ getEventLabel(webhook.eventType) }}</div>
+                          </div>
+                        </div>
                       </div>
-                      <CardDescription class="font-mono text-xs break-all text-white/60 bg-black/30 px-3 py-2 rounded-lg border border-white/10">
-                        {{ webhook.url }}
-                      </CardDescription>
-                      <div class="flex items-center gap-2 text-sm text-white/50">
-                        <WebhookIcon class="h-4 w-4" />
-                        <span>Evento: {{ getEventLabel(webhook.eventType) }}</span>
+                      
+                      <!-- URL -->
+                      <div class="relative group/url">
+                        <div class="absolute inset-0 bg-gradient-to-r from-[#e78a53]/0 via-[#e78a53]/5 to-[#e78a53]/0 opacity-0 group-hover/url:opacity-100 transition-opacity rounded-lg"></div>
+                        <div class="relative px-4 py-3 rounded-lg bg-black/40 border border-white/5 group-hover/url:border-white/10 transition-colors">
+                          <div class="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-1.5">URL del Webhook</div>
+                          <div class="font-mono text-xs text-white/70 break-all leading-relaxed">{{ webhook.url }}</div>
+                        </div>
                       </div>
                     </div>
-                    <div class="flex gap-2 ml-4">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        @click="testWebhook(webhook.id)"
-                        class="border-white/10 hover:border-emerald-500/40 hover:text-emerald-300"
-                        title="Probar webhook"
-                      >
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                    
+                    <!-- Actions -->
+                    <div class="flex flex-col gap-2">
+                      <button 
                         @click="editWebhook(webhook)"
-                        class="border-white/10 hover:border-[#e78a53]/40"
+                        class="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#e78a53]/40 text-white/90 hover:text-white text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95"
                       >
                         Editar
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      </button>
+                      <button 
                         @click="toggleWebhook(webhook.id)"
-                        class="border-white/10 hover:border-[#e78a53]/40"
+                        class="px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95"
+                        :class="webhook.active ? 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 hover:border-amber-500/50 text-amber-300' : 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 hover:border-emerald-500/50 text-emerald-300'"
                       >
                         {{ webhook.active ? 'Desactivar' : 'Activar' }}
-                      </Button>
-                      <Button 
-                        variant="danger" 
-                        size="sm" 
+                      </button>
+                      <button 
                         @click="confirmDelete(webhook.id)"
-                        class="bg-red-500/20 hover:bg-red-500/30 border-red-500/30"
+                        class="px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 text-red-300 hover:text-red-200 text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95"
                       >
                         Eliminar
-                      </Button>
+                      </button>
                     </div>
                   </div>
-                </CardHeader>
-              </Card>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -289,12 +288,8 @@ import { useWebhookStore } from '@/stores/webhook'
 import { useToastStore } from '@/stores/toast'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import Card from '@/components/ui/Card.vue'
-import CardHeader from '@/components/ui/CardHeader.vue'
-import CardTitle from '@/components/ui/CardTitle.vue'
-import CardDescription from '@/components/ui/CardDescription.vue'
 import CardContent from '@/components/ui/CardContent.vue'
 import Button from '@/components/ui/Button.vue'
-import Badge from '@/components/ui/Badge.vue'
 import Loading from '@/components/ui/Loading.vue'
 import Dialog from '@/components/ui/Dialog.vue'
 import Switch from '@/components/ui/Switch.vue'
@@ -412,19 +407,6 @@ async function handleDelete() {
     toastStore.error('Error', 'No se pudo eliminar el webhook')
   }
   webhookToDelete.value = null
-}
-
-async function testWebhook(id: string) {
-  try {
-    const result = await webhookStore.testWebhook(id)
-    if (result.success) {
-      toastStore.success('Test exitoso', result.message)
-    } else {
-      toastStore.error('Error en test', result.message)
-    }
-  } catch (error: any) {
-    toastStore.error('Error', 'No se pudo probar el webhook')
-  }
 }
 
 onMounted(async () => {

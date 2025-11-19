@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Webhook, WebhookEventType, WebhookTestResult } from '@/types'
+import type { Webhook, WebhookEventType } from '@/types'
 import { webhookService } from '@/services/webhook.service'
 
 export const useWebhookStore = defineStore('webhook', () => {
@@ -55,23 +55,6 @@ export const useWebhookStore = defineStore('webhook', () => {
     await fetchWebhooks()
   }
 
-  async function testWebhook(id: string): Promise<WebhookTestResult> {
-    try {
-      await webhookService.testWebhook(id)
-    return {
-      success: true,
-        message: 'Webhook test enviado exitosamente',
-      statusCode: 200,
-      }
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Error al probar webhook',
-        statusCode: error.response?.status || 500,
-      }
-    }
-  }
-
   return {
     webhooks,
     loading,
@@ -80,7 +63,6 @@ export const useWebhookStore = defineStore('webhook', () => {
     updateWebhook,
     toggleWebhook,
     deleteWebhook,
-    testWebhook,
   }
 })
 

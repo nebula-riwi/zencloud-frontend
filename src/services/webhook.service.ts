@@ -127,9 +127,5 @@ export const webhookService = {
     // Actualizar con el estado opuesto
     return await this.updateWebhook(id, { active: !webhook.active })
   },
-
-  async testWebhook(id: string): Promise<void> {
-    await apiClient.post(`/api/Webhooks/${id}/test`)
-  },
 }
 
