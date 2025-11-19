@@ -84,6 +84,16 @@ export const useAuthStore = defineStore('auth', () => {
     return userData
   }
 
+  async function logout(): Promise<void> {
+    try {
+      await authService.logout()
+    } catch (error) {
+      console.error('Error en logout del backend:', error)
+    } finally {
+      clearAuth()
+    }
+  }
+
   return {
     token,
     user,
@@ -96,6 +106,7 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     refresh,
     fetchMe,
+    logout,
   }
 })
 
