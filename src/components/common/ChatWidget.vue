@@ -365,7 +365,7 @@ function localizeChatTexts() {
 [id*="n8n-chat"] [class*="user-message"],
 #n8n-chat-container [class*="user-message"] *,
 [id*="n8n-chat"] [class*="user-message"] * {
-  color: #ffffff !important;
+  color: #0f1014 !important;
   font-weight: 600;
   mix-blend-mode: normal !important;
   opacity: 1 !important;
@@ -376,7 +376,7 @@ function localizeChatTexts() {
 [id*="n8n-chat"] .n8n-chat__message--user,
 #n8n-chat-container .n8n-chat__message--user *,
 [id*="n8n-chat"] .n8n-chat__message--user * {
-  color: #ffffff !important;
+  color: #0f1014 !important;
   mix-blend-mode: normal !important;
   opacity: 1 !important;
   text-shadow: none !important;
@@ -385,7 +385,13 @@ function localizeChatTexts() {
 #n8n-chat-container .n8n-chat__message--bot,
 [id*="n8n-chat"] .n8n-chat__message--bot,
 #n8n-chat-container .n8n-chat__message--bot *,
-[id*="n8n-chat"] .n8n-chat__message--bot * {
+[id*="n8n-chat"] .n8n-chat__message--bot *,
+#n8n-chat-container .n8n-chat__message--bot p,
+#n8n-chat-container .n8n-chat__message--bot span,
+#n8n-chat-container .n8n-chat__message--bot div,
+[id*="n8n-chat"] .n8n-chat__message--bot p,
+[id*="n8n-chat"] .n8n-chat__message--bot span,
+[id*="n8n-chat"] .n8n-chat__message--bot div {
   color: #0f1014 !important;
   mix-blend-mode: normal !important;
   opacity: 1 !important;
@@ -395,11 +401,23 @@ function localizeChatTexts() {
 #n8n-chat-container [class*="bot-message"],
 [id*="n8n-chat"] [class*="bot-message"],
 #n8n-chat-container [class*="bot-message"] *,
-[id*="n8n-chat"] [class*="bot-message"] * {
+[id*="n8n-chat"] [class*="bot-message"] *,
+#n8n-chat-container [class*="from-bot"],
+[id*="n8n-chat"] [class*="from-bot"],
+#n8n-chat-container [class*="from-bot"] *,
+[id*="n8n-chat"] [class*="from-bot"] * {
   color: #0f1014 !important;
   mix-blend-mode: normal !important;
   opacity: 1 !important;
   text-shadow: none !important;
+}
+
+/* Forzar color negro en párrafos del bot */
+#n8n-chat-container .chat-message-from-bot p,
+[id*="n8n-chat"] .chat-message-from-bot p,
+#n8n-chat-container .chat-message-markdown p,
+[id*="n8n-chat"] .chat-message-markdown p {
+  color: #0f1014 !important;
 }
 
 #n8n-chat-container input,

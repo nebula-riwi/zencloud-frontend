@@ -250,8 +250,16 @@
               :key="item.id"
               class="p-3 rounded-lg border border-white/10 bg-black/20 space-y-2"
             >
-              <div class="flex items-center justify-between text-xs">
-                <span class="text-white/50">{{ formatHistoryDate(item.executedAt) }}</span>
+              <div class="flex items-center justify-between text-xs gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-white/50">{{ formatHistoryDate(item.executedAt) }}</span>
+                  <Badge 
+                    v-if="item.databaseName" 
+                    class="bg-primary-light/20 text-primary-light border-primary-light/30 text-xs px-2 py-0.5 font-mono"
+                  >
+                    {{ item.databaseName }}
+                  </Badge>
+                </div>
                 <Badge 
                   :class="item.success ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border-amber-500/30'"
                   class="text-xs px-2 py-0.5"
@@ -265,6 +273,7 @@
               <div class="flex items-center gap-2 text-xs text-white/50">
                 <span v-if="item.rowCount !== undefined">{{ item.rowCount }} filas</span>
                 <span v-if="item.executionTimeMs">• {{ Number(item.executionTimeMs).toFixed(2) }} ms</span>
+                <span v-if="item.engineType" class="text-white/40">• {{ item.engineType }}</span>
               </div>
               
               <p v-if="item.error" class="text-xs text-amber-300/80 font-mono">{{ item.error }}</p>
@@ -315,9 +324,11 @@ function getDatabasesByEngine(engine: string) {
 function toggleEngine(engine: string) {
   const index = expandedEngines.value.indexOf(engine)
   if (index > -1) {
-    expandedEngines.value.splice(index, 1)
+    // Remove the engine - create a new array to ensure reactivity
+    expandedEngines.value = expandedEngines.value.filter(e => e !== engine)
   } else {
-    expandedEngines.value.push(engine)
+    // Add the engine - create a new array to ensure reactivity
+    expandedEngines.value = [...expandedEngines.value, engine]
   }
 }
 
@@ -346,7 +357,8 @@ function insertTableName(tableName: string) {
 
 watch(selectedDb, async (db) => {
   if (db && !expandedEngines.value.includes(db.engine)) {
-    expandedEngines.value.push(db.engine)
+    // Create a new array to ensure reactivity
+    expandedEngines.value = [...expandedEngines.value, db.engine]
   }
   if (db) {
     await loadTables()
@@ -379,7 +391,8 @@ onMounted(async () => {
     await databaseStore.fetchDatabases()
     await sqlStore.loadSelectedDatabase(databases.value)
     if (databases.value.length > 0) {
-      expandedEngines.value = groupedDatabases.value
+      // Create a copy of the array to ensure proper reactivity
+      expandedEngines.value = [...groupedDatabases.value]
     }
     if (selectedDb.value) {
       await sqlStore.fetchTables(selectedDb.value)

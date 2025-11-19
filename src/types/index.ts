@@ -173,6 +173,8 @@ export interface QueryHistoryItem {
   executionTimeMs?: number
   error?: string
   executedAt: string
+  databaseName?: string
+  engineType?: string
 }
 
 export interface DatabaseTable {
