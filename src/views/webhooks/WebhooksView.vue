@@ -276,7 +276,10 @@
     <AlertDialog
       v-model="showDeleteDialog"
       title="Eliminar Webhook"
-      description="¿Estás seguro de que deseas eliminar este webhook?"
+      description="¿Estás seguro de que deseas eliminar este webhook? Esta acción no se puede deshacer."
+      confirm-text="Eliminar"
+      cancel-text="Cancelar"
+      confirm-variant="danger"
       @confirm="handleDelete"
     />
   </DashboardLayout>

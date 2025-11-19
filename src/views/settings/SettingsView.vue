@@ -52,12 +52,13 @@
             <div class="space-y-2">
               <label class="text-sm font-semibold text-white/90 flex items-center gap-2">
                 <User class="w-4 h-4 text-[#e78a53]" />
-                Nombre
+                Nombre Completo
               </label>
               <Input
-                v-model="profileData.name"
-                :disabled="true"
-                class="bg-black/40 border-white/10 text-white placeholder:text-white/40 focus:border-[#e78a53]/50 focus:ring-[#e78a53]/20"
+                v-model="editableName"
+                :disabled="savingProfile"
+                placeholder="Tu nombre completo"
+                class="bg-black/40 border-white/10 text-white placeholder:text-white/40 focus:border-[#e78a53]/50 focus:ring-[#e78a53]/20 disabled:opacity-50"
               />
             </div>
             <div class="space-y-2">
@@ -69,8 +70,19 @@
                 v-model="profileData.email"
                 type="email"
                 :disabled="true"
-                class="bg-black/40 border-white/10 text-white placeholder:text-white/40 focus:border-[#e78a53]/50 focus:ring-[#e78a53]/20"
+                class="bg-black/40 border-white/10 text-white/60 placeholder:text-white/40 cursor-not-allowed"
               />
+              <p class="text-xs text-white/40 ml-1">El email no puede ser modificado</p>
+            </div>
+            
+            <div class="flex justify-end pt-2">
+              <button
+                @click="saveProfile"
+                :disabled="savingProfile || editableName === user?.name"
+                class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-[#e78a53] to-[#f59a63] hover:from-[#f59a63] hover:to-[#e78a53] text-white font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 shadow-lg shadow-[#e78a53]/30"
+              >
+                {{ savingProfile ? 'Guardando...' : 'Guardar Cambios' }}
+              </button>
             </div>
           </CardContent>
         </Card>
@@ -116,7 +128,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useUserPrefsStore } from '@/stores/userPrefs'
 import { useToastStore } from '@/stores/toast'
@@ -130,6 +142,7 @@ import Input from '@/components/ui/Input.vue'
 import Switch from '@/components/ui/Switch.vue'
 import { User, Mail, Bell, Settings as SettingsIcon } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
+import apiClient from '@/services/api'
 
 const authStore = useAuthStore()
 const userPrefsStore = useUserPrefsStore()
@@ -138,10 +151,44 @@ const toastStore = useToastStore()
 const { user } = storeToRefs(authStore)
 const { preferences } = storeToRefs(userPrefsStore)
 
+const editableName = ref('')
+const savingProfile = ref(false)
+
 const profileData = computed(() => ({
   name: user.value?.name || '',
   email: user.value?.email || '',
 }))
+
+watch(() => user.value?.name, (newName) => {
+  if (newName) {
+    editableName.value = newName
+  }
+}, { immediate: true })
+
+async function saveProfile() {
+  if (!editableName.value || editableName.value.trim().length < 2) {
+    toastStore.error('Nombre inválido', 'El nombre debe tener al menos 2 caracteres')
+    return
+  }
+
+  savingProfile.value = true
+  try {
+    await apiClient.put('/api/Auth/profile', {
+      fullName: editableName.value.trim()
+    })
+    
+    // Actualizar el nombre en el store
+    if (user.value) {
+      user.value.name = editableName.value.trim()
+    }
+    
+    toastStore.success('Perfil actualizado', 'Tu nombre ha sido actualizado correctamente')
+  } catch (error: any) {
+    toastStore.error('Error', error.response?.data?.message || 'No se pudo actualizar el perfil')
+  } finally {
+    savingProfile.value = false
+  }
+}
 
 async function savePreferences() {
   try {

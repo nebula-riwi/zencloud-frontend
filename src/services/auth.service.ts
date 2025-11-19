@@ -59,11 +59,19 @@ export const authService = {
   },
 
   /**
-   * Cierra sesión (solo limpia el token local, el backend no tiene endpoint de logout)
+   * Cierra sesión y notifica al backend
    */
   async logout(): Promise<void> {
-    sessionStorage.removeItem('Token')
-    sessionStorage.removeItem('Email')
+    try {
+      // Llamar al endpoint de logout del backend para disparar el webhook
+      await apiClient.post('/api/Auth/logout')
+    } catch (error) {
+      console.error('Error al llamar al endpoint de logout:', error)
+    } finally {
+      // Siempre limpiar el storage local
+      sessionStorage.removeItem('Token')
+      sessionStorage.removeItem('Email')
+    }
   },
 
   /**
