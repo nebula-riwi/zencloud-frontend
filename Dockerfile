@@ -19,7 +19,9 @@ COPY pnpm-lock.yaml* ./
 
 # Instalar dependencias
 # Intentar con lockfile primero, si falla, instalar sin lockfile (lo regenerará)
-RUN pnpm install || (echo "Install with lockfile failed, installing without lockfile..." && rm -f pnpm-lock.yaml && pnpm install)
+RUN pnpm install --frozen-lockfile || \
+    pnpm install --no-frozen-lockfile || \
+    (echo "Install with lockfile failed, installing without lockfile..." && rm -f pnpm-lock.yaml && pnpm install)
 
 # Copiar el resto del código
 COPY . .
