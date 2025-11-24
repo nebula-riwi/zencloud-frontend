@@ -125,7 +125,7 @@ const isFormValid = computed(() => {
          form.value.message.trim() !== ''
 })
 
-async function submitForm() {
+function submitForm() {
   if (!isFormValid.value) return
 
   // Construir mensaje para WhatsApp
@@ -138,25 +138,19 @@ async function submitForm() {
 💬 *Mensaje:*
 ${form.value.message}`
 
-  try {
-    // Copiar mensaje al portapapeles
-    await navigator.clipboard.writeText(whatsappMessage)
-    
-    toastStore.success('¡Mensaje copiado!', 'El mensaje se copió al portapapeles. Se abrirá WhatsApp para que lo pegues.')
-    
-    // Abrir WhatsApp después de un breve delay
-    setTimeout(() => {
-      window.open('https://wa.link/e8i1hw', '_blank')
-    }, 500)
-  } catch (err) {
-    console.error('Error al copiar al portapapeles:', err)
-    toastStore.error('Error', 'No se pudo copiar el mensaje. Por favor, copia manualmente.')
-  }
+  // Codificar mensaje para URL
+  const encodedMessage = encodeURIComponent(whatsappMessage)
+  
+  // Abrir WhatsApp con mensaje pre-cargado
+  const whatsappUrl = `https://wa.me/573195256897?text=${encodedMessage}`
+  window.open(whatsappUrl, '_blank')
+
+  toastStore.success('Redirigiendo a WhatsApp', 'Se abrirá WhatsApp con tu mensaje de soporte pre-cargado.')
   
   // Resetear formulario después de un breve delay
   setTimeout(() => {
     resetForm()
-  }, 2000)
+  }, 1000)
 }
 
 function resetForm() {
