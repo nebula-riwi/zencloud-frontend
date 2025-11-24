@@ -129,14 +129,18 @@ function submitForm() {
   if (!isFormValid.value) return
 
   // Construir mensaje para WhatsApp
-  const whatsappMessage = `🎫 *Solicitud de Soporte - ZenCloud*
+  const whatsappMessage = `*SOLICITUD DE SOPORTE - ZENCLOUD*
 
-👤 *Nombre:* ${form.value.name}
-📧 *Email:* ${form.value.email}
-📋 *Asunto:* ${form.value.subject}
+*Información de Contacto:*
+• Nombre: ${form.value.name}
+• Email: ${form.value.email}
+• Asunto: ${form.value.subject}
 
-💬 *Mensaje:*
-${form.value.message}`
+*Descripción del Problema:*
+${form.value.message}
+
+---
+_Mensaje generado desde el panel de soporte de ZenCloud_`
 
   // Codificar mensaje para URL
   const encodedMessage = encodeURIComponent(whatsappMessage)
