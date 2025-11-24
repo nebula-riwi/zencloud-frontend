@@ -33,6 +33,18 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/activity-logs',
+    name: 'ActivityLogs',
+    component: () => import('@/views/logs/ActivityLogsView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/support',
+    name: 'Support',
+    component: () => import('@/views/support/SupportView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/settings',
     name: 'Settings',
     component: () => import('@/views/settings/SettingsView.vue'),

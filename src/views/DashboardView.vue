@@ -156,7 +156,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { usePlanStore } from '@/stores/plan'
 import { useDatabaseStore } from '@/stores/database'
-// import { useWebhookStore } from '@/stores/webhook' // Deshabilitado temporalmente
+import { useWebhookStore } from '@/stores/webhook'
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import Card from '@/components/ui/Card.vue'
 import CardHeader from '@/components/ui/CardHeader.vue'
@@ -171,11 +171,12 @@ const router = useRouter()
 const authStore = useAuthStore()
 const planStore = usePlanStore()
 const databaseStore = useDatabaseStore()
-// const webhookStore = useWebhookStore() // Deshabilitado temporalmente
+const webhookStore = useWebhookStore()
 
 const { user } = storeToRefs(authStore)
 const { currentPlan } = storeToRefs(planStore)
 const { databases } = storeToRefs(databaseStore)
+const { webhooks } = storeToRefs(webhookStore)
 
 const engines = [
   {
@@ -223,7 +224,7 @@ const engines = [
 ]
 
 const totalDatabases = computed(() => databases.value.length)
-const activeWebhooks = computed(() => 0) // Webhooks deshabilitados temporalmente
+const activeWebhooks = computed(() => webhooks.value.filter(w => w.active).length)
 
 function goToDatabases(engine: DatabaseEngine) {
   router.push(`/databases?engine=${engine}`)
@@ -246,9 +247,9 @@ onMounted(async () => {
     await Promise.all([
       planStore.fetchPlan(),
       databaseStore.fetchDatabases(),
-      // webhookStore.fetchWebhooks().catch(() => {
-      //   console.warn('Webhooks deshabilitados temporalmente')
-      // }),
+      webhookStore.fetchWebhooks().catch(() => {
+        console.warn('No se pudieron cargar webhooks')
+      }),
     ])
   } catch (error) {
     console.error('No fue posible cargar la información del dashboard:', error)

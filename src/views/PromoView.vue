@@ -118,9 +118,6 @@
                   <div class="flex-1">
                     <div class="flex items-center gap-2 mb-1.5 md:mb-2">
                       <h3 class="text-lg md:text-xl font-bold text-white">Asistente IA</h3>
-                      <span class="px-2 py-0.5 rounded-full bg-[#e78a53]/20 text-[#e78a53] text-xs font-medium border border-[#e78a53]/30">
-                        Próximamente
-                      </span>
                     </div>
                     <p class="text-white/70 text-xs md:text-sm leading-relaxed">
                       Gestiona tus bases de datos con inteligencia artificial. Crea, optimiza y administra usando lenguaje natural.

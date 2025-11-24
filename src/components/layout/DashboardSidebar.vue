@@ -120,7 +120,9 @@ import {
   Webhook, 
   Settings, 
   Terminal,
-  Menu
+  Menu,
+  FileText,
+  HelpCircle
 } from 'lucide-vue-next'
 
 interface Props {
@@ -145,6 +147,8 @@ const menuItems = [
   { path: '/databases', label: 'Bases de Datos', icon: Database },
   { path: '/billing', label: 'Facturación', icon: CreditCard },
   { path: '/webhooks', label: 'Webhooks', icon: Webhook },
+  { path: '/activity-logs', label: 'Logs de Actividad', icon: FileText },
+  { path: '/support', label: 'Soporte', icon: HelpCircle },
   { path: '/sql-editor', label: 'SQL Editor', icon: Terminal },
   { path: '/settings', label: 'Configuración', icon: Settings },
 ]
