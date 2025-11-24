@@ -53,7 +53,6 @@
             <template #header>
               <div class="flex items-center gap-2">
                 <h3 class="text-2xl leading-none font-semibold tracking-tight text-white">Asistente IA</h3>
-                <span class="text-xs px-2 py-1 rounded-full bg-[#e78a53]/20 text-[#e78a53] font-medium">Próximamente</span>
               </div>
               <p class="text-md text-white/60 text-sm leading-relaxed mt-2">
                 Gestiona tus bases de datos con inteligencia artificial. Crea, optimiza y administra 
