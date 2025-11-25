@@ -56,7 +56,35 @@ Frontend moderno construido con **Vue.js 3** y **TypeScript** que proporciona un
 - **Gráficos interactivos** con Chart.js
 - **Estadísticas** de uso
 - **Métricas** de rendimiento
-- **Logs de auditoría**
+- **Dashboard de actividad** con filtros temporales
+
+### 🔔 Webhooks & Notificaciones
+- **Gestión de webhooks** para eventos en tiempo real
+- **Contador de eventos** ejecutados
+- **Configuración personalizada** por tipo de evento
+- **Activación/desactivación** dinámica
+
+### 💳 Facturación
+- **Integración con MercadoPago** para pagos
+- **Gestión de planes** y suscripciones
+- **Historial de pagos** detallado
+- **Estadísticas de uso** de recursos
+
+### 📋 Sistema de Actividad
+- **Logs de bases de datos** en tiempo real
+- **Filtros temporales**: Hoy, Esta Semana, Este Mes
+- **Visualización detallada** de acciones (crear, editar, eliminar)
+- **Información de IP** y timestamp
+
+### 🤖 AI Assistant
+- **Chat inteligente** con contexto del usuario
+- **Sugerencias** de queries SQL
+- **Ayuda contextual** sobre bases de datos
+
+### 💬 Soporte Técnico
+- **Formulario de contacto** integrado
+- **Integración con WhatsApp** para soporte directo
+- **Mensaje pre-formateado** profesional
 
 ## 🛠 Tecnologías
 
@@ -122,6 +150,11 @@ zencloud-frontend/
 │   │   ├── auth/        # Login, Register
 │   │   ├── databases/   # Lista de BDs
 │   │   ├── sql/         # SQL Editor
+│   │   ├── billing/     # Facturación y pagos
+│   │   ├── webhooks/    # Gestión de webhooks
+│   │   ├── logs/        # Activity logs
+│   │   ├── support/     # Soporte técnico
+│   │   ├── settings/    # Configuración
 │   │   └── dashboard/   # Dashboard
 │   ├── stores/          # Pinia stores
 │   │   ├── auth.ts      # Estado autenticación
@@ -259,8 +292,12 @@ export const databaseService = {
 - **Login/Register** (`/auth/login`, `/auth/register`)
 - **Dashboard** (`/`) - Métricas y accesos rápidos
 - **Lista de BDs** (`/databases`) - Tarjetas con todas las instancias
-- **SQL Editor** (`/sql`) - Editor interactivo para queries
-- **Perfil** (`/profile`) - Gestión de cuenta
+- **SQL Editor** (`/sql-editor`) - Editor interactivo para queries
+- **Webhooks** (`/webhooks`) - Gestión de eventos y notificaciones
+- **Facturación** (`/billing`) - Planes, pagos y suscripciones
+- **Actividad** (`/activity-logs`) - Logs de acciones en bases de datos
+- **Soporte** (`/support`) - Contacto directo por WhatsApp
+- **Configuración** (`/settings`) - Perfil y ajustes de cuenta
 
 **Componentes clave:**
 - `DatabaseCard.vue` - Tarjeta de BD con acciones
@@ -292,6 +329,10 @@ export const databaseService = {
 State Management (Pinia):
 ├── authStore - JWT, user, login/logout
 ├── databaseStore - Instancias, CRUD
+├── webhookStore - Webhooks y eventos
+├── paymentStore - Pagos y suscripciones
+├── auditLogStore - Logs de actividad
+├── aiStore - AI Assistant
 └── toastStore - Notificaciones
 ```
 
